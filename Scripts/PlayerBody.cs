@@ -63,18 +63,21 @@ public class PlayerBody : KinematicBody
     // Called every frame. 'delta' is the elapsed time since the previous frame.
     public override void _Process(float delta)
     {
-        bool headBumped = false;
-        //Set the players speed to the walk speed by defualt
+        //Set the players speed to the walk speed by defualt every frame, this works with sprinting and crouch speed
         speed = walkSpeed;
-
+        //Bool te check if the head if the player is making contact with a ceiling surface
+        bool headBumped = false;
+        //Reset the direction to 0 every frame start to not kepp building speed to light speed
         direction = Vector3.Zero;
         //Check if the head ray collider is active
         if (headBump.IsColliding()) headBumped = true;
-
+        //if we are touchin the floor then we cancel the gravity on the playe
         if (!IsOnFloor()) fall.y -= gravity * delta;
-
-        if (Input.IsActionJustPressed("Jump")) fall.y = jump;
-
+        //If we press jump we jump!
+        if (Input.IsActionJustPressed("Jump") && IsOnFloor()) fall.y = jump;
+        //If the sprint key is pressed we set the default speed to the new sprint speed
+        if (Input.IsActionPressed("Sprint")) speed = sprintSpeed;
+        //If the player hits a ceiling he does not "stick" to it for a second then fall, it makes you fall emediatly
         if (headBumped) fall.y = -2;
 
         if (Input.IsActionJustPressed("ui_cancel")) Input.SetMouseMode(Input.MouseMode.Visible);
@@ -85,10 +88,9 @@ public class PlayerBody : KinematicBody
             capShape.Height -= crouchingSpeed * delta;
             speed = crouchSpeed;
         }
-        else if(!headBumped) 
+        else if (!headBumped)
         {
             ((CapsuleShape)playerCollShape.Shape).Height += crouchingSpeed * delta;
-            speed = walkSpeed;
         }
         //Clamp the max and min height for crouching when it is being modified
         ((CapsuleShape)playerCollShape.Shape).Height = Mathf.Clamp(((CapsuleShape)playerCollShape.Shape).Height, crouchHeight, defualtHeight);
