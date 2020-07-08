@@ -26,6 +26,11 @@ public class PlayerBody : KinematicBody
     //How sensitive the movement of the mouse is
     float mouseSensitivity = 0.05f;
 
+    //The point where the grappling hook has hooked
+    Vector3 hookPoint = new Vector3();
+    bool hookPointGet = false;
+    //If the grappling hook has been fired
+    bool grappling = false;
 
     Vector3 direction;
     Vector3 velocity;
@@ -34,6 +39,7 @@ public class PlayerBody : KinematicBody
     Spatial head;
     CollisionShape playerCollShape;
     RayCast headBump;
+    RayCast GrappleRay;
 
     // Declare member variables here. Examples:
     // private int a = 2;
@@ -46,6 +52,7 @@ public class PlayerBody : KinematicBody
         head = GetNode<Spatial>("Head");
         playerCollShape = GetNode<CollisionShape>("CollisionShape");
         headBump = GetNode<RayCast>("HeadBump");
+        GrappleRay = GetNode<RayCast>("Head/Camera/GrappleRay");
     }
 
     public override void _Input(InputEvent @event)
@@ -60,9 +67,53 @@ public class PlayerBody : KinematicBody
         }
     }
 
-    // Called every frame. 'delta' is the elapsed time since the previous frame.
-    public override void _Process(float delta)
+    public void Grapple()
     {
+        if (Input.IsActionJustPressed("Ability"))
+        {
+            if (GrappleRay.IsColliding())
+            {
+                if (!grappling)
+                {
+                    grappling = true;
+                }
+            }
+        }
+        if (grappling)
+        {
+            fall.y = 0;
+            if (!hookPointGet)
+            {
+                hookPoint = GrappleRay.GetCollisionPoint() + new Vector3(0, 1.25f, 0);
+                hookPointGet = true;
+            }
+            if (hookPoint.DistanceTo(Transform.origin) > 1f)
+            {
+                if (hookPointGet)
+                {
+                    Transform = new Transform(Transform.basis, Transform.origin.LinearInterpolate(hookPoint, 0.05f));
+                }
+                else
+                {
+                    grappling = false;
+                    hookPointGet = false;
+                }
+            }
+        }
+        if (headBump.IsColliding())
+        {
+            grappling = false;
+            hookPoint = new Vector3();
+            hookPointGet = false;
+            GlobalTranslate(new Vector3(0, -1, 0));
+        }
+    }
+
+    // Called every frame. 'delta' is the elapsed time since the previous frame.
+    public override void _PhysicsProcess(float delta)
+    {
+
+        Grapple();
         //Set the players speed to the walk speed by defualt every frame, this works with sprinting and crouch speed
         speed = walkSpeed;
         //Bool te check if the head if the player is making contact with a ceiling surface

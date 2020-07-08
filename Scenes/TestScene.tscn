@@ -57,3 +57,13 @@ material/0 = null
 
 [node name="CollisionShape" type="CollisionShape" parent="Cube2"]
 shape = SubResource( 6 )
+
+[node name="Cube3" type="KinematicBody" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 12, 8 )
+
+[node name="CubeMesh" type="MeshInstance" parent="Cube3"]
+mesh = SubResource( 5 )
+material/0 = null
+
+[node name="CollisionShape" type="CollisionShape" parent="Cube3"]
+shape = SubResource( 6 )

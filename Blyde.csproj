@@ -58,6 +58,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Scripts\CommandHandler.cs" />
+    <Compile Include="Scripts\Console.cs" />
     <Compile Include="Scripts\Main.cs" />
     <Compile Include="Scripts\PlayerBody.cs" />
   </ItemGroup>
