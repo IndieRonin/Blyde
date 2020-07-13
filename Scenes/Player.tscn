@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=4 format=2]
 
 [ext_resource path="res://Scripts/PlayerBody.cs" type="Script" id=1]
+[ext_resource path="res://Textures/Cursors/Cursor.png" type="Texture" id=2]
 
 [sub_resource type="CapsuleShape" id=1]
 radius = 0.5
@@ -22,6 +23,16 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0 )
 [node name="GrappleRay" type="RayCast" parent="Head/Camera"]
 enabled = true
 cast_to = Vector3( 0, 0, -60 )
+
+[node name="TextureRect" type="TextureRect" parent="Head/Camera"]
+margin_left = 624.0
+margin_top = 344.0
+margin_right = 656.0
+margin_bottom = 376.0
+texture = ExtResource( 2 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
 [node name="HeadBump" type="RayCast" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.317068, 0 )

@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/TempIcon.svg-8e4735b2f1f5b26a7724b66073188f7d.stex"
+path="res://.import/Cursor.svg-7a3b41fd7bca116bf49a377343475aac.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://TempIcon.svg"
-dest_files=[ "res://.import/TempIcon.svg-8e4735b2f1f5b26a7724b66073188f7d.stex" ]
+source_file="res://Textures/Cursors/Cursor.svg"
+dest_files=[ "res://.import/Cursor.svg-7a3b41fd7bca116bf49a377343475aac.stex" ]
 
 [params]
 

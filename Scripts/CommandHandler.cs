@@ -15,8 +15,30 @@ public class CommandHandler : Node
     public Dictionary<String, List<Arguments>> ValidCommands = new Dictionary<String, List<Arguments>>()
     {
         {"SetSpeed", new List<Arguments>() {Arguments.ARG_INT}},
-        {"Set2ArgTest", new List<Arguments>() {Arguments.ARG_INT, Arguments.ARG_STRING}}
+        {"SetTest2Arg", new List<Arguments>() {Arguments.ARG_INT, Arguments.ARG_STRING}},
+        {"BoolTest", new List<Arguments>() {Arguments.ARG_INT, Arguments.ARG_BOOL}},
+        {"exit", new List<Arguments>() {}}
     };
+
+    public void SetSpeed(int newSpeed)
+    {
+        GD.Print("New speed is set to ->" + newSpeed);
+    }
+
+    public void SetTest2Arg(int newSpeed, string myString)
+    {
+        GD.Print("SetTest2Arg int = " + newSpeed + " and the string is = " + myString);
+    }
+
+    public void BoolTest(int newSpeed, bool myBool)
+    {
+        GD.Print("BoolTest int = " + newSpeed + " and the string is = " + myBool);
+    }
+
+    public void exit()
+    {
+        GetTree().Quit();
+    }
 
     // Declare member variables here. Examples:
     // private int a = 2;
@@ -27,9 +49,9 @@ public class CommandHandler : Node
     {
     }
 
-//  // Called every frame. 'delta' is the elapsed time since the previous frame.
-//  public override void _Process(float delta)
-//  {
-//      
-//  }
+    //  // Called every frame. 'delta' is the elapsed time since the previous frame.
+    //  public override void _Process(float delta)
+    //  {
+    //      
+    //  }
 }
