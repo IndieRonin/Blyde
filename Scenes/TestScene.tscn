@@ -32,6 +32,7 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 3, 0 )
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0 )
 
 [node name="MeshInstance" type="MeshInstance" parent="Floor"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.000823975, -0.0117836, -0.051774 )
 mesh = SubResource( 1 )
 material/0 = null
 
@@ -59,11 +60,22 @@ material/0 = null
 shape = SubResource( 6 )
 
 [node name="Cube3" type="KinematicBody" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 12, 8 )
+transform = Transform( 1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, -8, 3.43619, 8 )
 
 [node name="CubeMesh" type="MeshInstance" parent="Cube3"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0130558, -0.202012, -0.208785 )
 mesh = SubResource( 5 )
 material/0 = null
 
 [node name="CollisionShape" type="CollisionShape" parent="Cube3"]
+shape = SubResource( 6 )
+
+[node name="Cube4" type="KinematicBody" parent="."]
+transform = Transform( 1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, -4, 0.858738, 8 )
+
+[node name="CubeMesh" type="MeshInstance" parent="Cube4"]
+mesh = SubResource( 5 )
+material/0 = null
+
+[node name="CollisionShape" type="CollisionShape" parent="Cube4"]
 shape = SubResource( 6 )

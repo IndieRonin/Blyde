@@ -3,7 +3,7 @@ using System;
 
 namespace EventCallback
 {
-    public class CameraEvent : Event<CameraEvent>
+    public class CameraHadleEvent : Event<CameraHadleEvent>
     {
         //The target the camera must track
         public Node2D target;
