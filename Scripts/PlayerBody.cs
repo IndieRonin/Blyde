@@ -13,15 +13,6 @@ and depending on the state of the player that maxspeed limmit will be applied.
 */
 public class PlayerBody : KinematicBody
 {
-    //How fast the player moves when crouched
-    float crouchSpeed = 3;
-
-
-
-
-
-
-
     //The point where the grappling hook has hooked
     Vector3 hookPoint = new Vector3();
     //If a hook point is returned
@@ -149,41 +140,17 @@ public class PlayerBody : KinematicBody
     // Called every frame. 'delta' is the elapsed time since the previous frame.
     public override void _PhysicsProcess(float delta)
     {
+        //Check if the head ray collider is active
+        if (ceilingRaycast.IsColliding()) isCollidingWithCeiling = true;
+
         //Grabs the input 
         ProcessInput(delta);
         //Processes the input and moves the charecter
         PrecessMovement(delta);
         /*
                 Grapple();
-        
-                //Check if the head ray collider is active
-                if (ceilingRaycast.IsColliding()) headBumped = true;
-
-
-                //If the sprint key is pressed we set the default speed to the new sprint speed
-                if (Input.IsActionPressed("Sprint")) speed = sprintSpeed;
                 //If the player hits a ceiling he does not "stick" to it for a second then fall, it makes you fall emediatly
                 if (headBumped) fall.y = -2;
-
-                //If the player is crouching and the collision shape is a capsule then 
-                if (Input.IsActionPressed("Crouch") && bodyCollShape.Shape is CapsuleShape capShape)
-                {
-                    capShape.Height -= crouchingSpeed * delta;
-                    speed = crouchSpeed;
-                }
-                else if (!headBumped)
-                {
-                    ((CapsuleShape)bodyCollShape.Shape).Height += crouchingSpeed * delta;
-                }
-                //Clamp the max and min height for crouching when it is being modified
-                ((CapsuleShape)bodyCollShape.Shape).Height = Mathf.Clamp(((CapsuleShape)bodyCollShape.Shape).Height, crouchHeight, defualtHeight);
-
-                //We set the velocity to linearly interpolate to give us smooth acceleration and decceleration
-                velocity = velocity.LinearInterpolate(direction * speed, accelleration * delta);
-                //Set the value from the move and slide back to the velocity vlue for the horizontal movement of the body
-                velocity = MoveAndSlide(velocity, Vector3.Up, true, 2, Mathf.Deg2Rad(MaxSlopeAngle));
-                //Move and slide the body to the value of the jump perameterd
-                MoveAndSlide(fall, Vector3.Up, true);
                 */
     }
 
@@ -221,11 +188,20 @@ public class PlayerBody : KinematicBody
         //If the sprint button is pressed we set sprinting to true
         if (Input.IsActionPressed("Sprint")) isSprinting = true;
         else isSprinting = false;
-        //If hte crouch button is pressed then we set is crouching to true
-        if (Input.IsActionPressed("Crouch")) isCrouching = true;
-        else isCrouching = false;
+        //If the player is crouching and the collision shape is a capsule then 
+        if (Input.IsActionPressed("Crouch") && bodyCollShape.Shape is CapsuleShape capShape)
+        {
+            capShape.Height -= MAX_CROUCH_SPEED * delta;
+            isCrouching = true;
+        }
+        else if (!isCollidingWithCeiling)
+        {
+            ((CapsuleShape)bodyCollShape.Shape).Height += MAX_CROUCH_SPEED * delta;
+            isCrouching = false;
+        }
+                //Clamp the max and min height for crouching when it is being modified
+                ((CapsuleShape)bodyCollShape.Shape).Height = Mathf.Clamp(((CapsuleShape)bodyCollShape.Shape).Height, crouchHeight, defualtHeight);
 
-    
     }
 
     private void PrecessMovement(float delta)
