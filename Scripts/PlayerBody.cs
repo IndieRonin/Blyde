@@ -225,7 +225,7 @@ public class PlayerBody : KinematicBody
                 //hookPoint = grappleRay.GetCollisionPoint() + new Vector3(0, 1.25f, 0);
                 hookPoint = grappleRay.GetCollisionPoint();
                 //We get the direction of travel to the hookPoint
-                hookPointDirection = (hookPoint - GlobalTransform.origin).Normalized();
+                hookPointDirection = (hookPoint - Transform.origin).Normalized();
                 //We tell the function we now have a hook point so we don't get a new one in the next interation of the loop
                 hasHookPoint = true;
             }
@@ -275,6 +275,7 @@ public class PlayerBody : KinematicBody
         //If the grapple has hooked a valid surface
         if (hasHookPoint)
         {
+            GD.Print("target set again");
             target = hookPointDirection;
             velocity.y = hookPointDirection.y;
         }
