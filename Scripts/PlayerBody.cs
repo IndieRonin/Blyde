@@ -255,21 +255,17 @@ public class PlayerBody : KinematicBody
             hookPointDirection = new Vector3();
         }
         //===============================================================================================================
-        
+
         //If we were gliding but are now on the ground we disable the isGliding
         if (isGliding)
         {
-            //We grab the current velocity 
-            //lift  = velocity * delta;
-            //Don't know if this wil work or not
-            lift = velocity.Length();//  Mathf.Abs((velocity.x + velocity.z));
-            //Clamp the lift 
-            lift = Mathf.Clamp(lift, 0, 20);
-            GD.Print("velocity.y = " + velocity.y);
-            //velocity.y += lift;
+            //We get the magnitude of the vector as a float (speed) to add toe the gravity calculations
+            lift = new Vector2(velocity.x, velocity.z).Length();
+            //Clamp the lift float to not give to much lift
+            lift = Mathf.Clamp(lift, 0, 14);
         }
-//We add the gravity to the velocities y axis
-        velocity.y += delta * gravity;
+        //We add the gravity to the velocities y axis
+        velocity.y += delta * (gravity + lift);
         //we set the velocity to a temporary velocity hvel to add some pysics work
         Vector3 hvel = velocity;
         //We make sure that the tem horizontal velocities y axis for jumping is set to zero; 
