@@ -13,8 +13,6 @@ public class PlayerBody : KinematicBody
     RayCast ceilingRaycast;
     //The raycast for thte grapple 
     RayCast grappleRay;
-    //The move direction for the grappling hook
-    Vector3 hookPointDirection;
     //=============================================================================================
     //= Crouching variables =======================================================================
     //Movement varaibles below in the movement variables code, only other crouch spisific variables here
@@ -59,7 +57,7 @@ public class PlayerBody : KinematicBody
     //The speed at with the player crouches, goes into a crouching position
     float MAX_CROUCH_SPEED = 3;
     //The speed at with the player is pulle to the hook of the grapple
-    float MAX_GRAPPLE_SPEED = 20;
+    float MAX_GRAPPLE_SPEED = 3;
     //=============================================================================================
     //= Statuses of the movement of the player ====================================================
     //If the player is sprinting
@@ -201,7 +199,7 @@ public class PlayerBody : KinematicBody
             {
                 grappleActive = false;
                 hasHookPoint = false;
-                hookPointDirection = new Vector3();
+                hookPoint = new Vector3();
             }
         }
     }
@@ -226,21 +224,9 @@ public class PlayerBody : KinematicBody
                 //If the raycast is colliding we set the hookPoint that point 
                 //hookPoint = grappleRay.GetCollisionPoint() + new Vector3(0, 1.25f, 0);
                 hookPoint = grappleRay.GetCollisionPoint();
-                //We get the direction of travel to the hookPoint
-                hookPointDirection = (hookPoint - Transform.origin).Normalized();
                 //We tell the function we now have a hook point so we don't get a new one in the next interation of the loop
                 hasHookPoint = true;
             }
-            //We grab the distance form the player body to the hookPoint
-            /*
-            if (hookPoint.DistanceTo(Transform.origin) < 1.5f)
-            {
-                //If no hook point is set we set the grappling and hookPointGet to false
-                grappleActive = false;
-                hasHookPoint = false;
-                hookPointDirection = new Vector3();
-            }
-            */
         }
         //We check if we are colliding with hte ceiling
         if (ceilingRaycast.IsColliding())
@@ -252,7 +238,7 @@ public class PlayerBody : KinematicBody
             //We set the hookPointGet
             hasHookPoint = false;
             GlobalTranslate(new Vector3(0, -1, 0));
-            hookPointDirection = new Vector3();
+            hookPoint = new Vector3();
         }
         //===============================================================================================================
 
@@ -275,9 +261,9 @@ public class PlayerBody : KinematicBody
         //If the grapple has hooked a valid surface
         if (hasHookPoint)
         {
-            GD.Print("target set again");
-            target = hookPointDirection;
-            velocity.y = hookPointDirection.y;
+            //Set gravity to 0 to travel ot hooked point smoothly
+            velocity.y = 0;
+            Transform = new Transform(Transform.basis,Transform.origin.LinearInterpolate(hookPoint, MAX_GRAPPLE_SPEED * delta));
         }
         //We set the maximum movement speed her, later more max move speeds will be added for crouching, sprinting and gliding
         if (isSprinting) target *= MAX_SPRINT_SPEED;
