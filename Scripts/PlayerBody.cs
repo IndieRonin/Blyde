@@ -38,6 +38,8 @@ public class PlayerBody : KinematicBody
     float gravity = -9.8f;
     //The speed at witch the object picks up speed
     float acceleration = 5f;
+    //acceleration for the grapple
+    float grappleAcceleration = 16;
     //The speed at witch the the object losses speed
     float deacceleration = 16f;
     //The maximum slope that can be moved up
@@ -140,8 +142,8 @@ public class PlayerBody : KinematicBody
         if (Input.IsActionJustPressed("Jump"))
         {
             //If the player is on the floor
-            if (IsOnFloor())
-            { 
+            if (IsOnFloor() && !isGliding)
+            {
                 //We set the velocity to the jump velocity
                 velocity.y = jumpSpeed;
                 //We set the hasJumped to true
@@ -195,7 +197,7 @@ public class PlayerBody : KinematicBody
                 }
             }
             //If the grapple is active and the the hook point is there then we cut the grapple 
-            if(grappleActive && hasHookPoint)
+            if (grappleActive && hasHookPoint)
             {
                 grappleActive = false;
                 hasHookPoint = false;
@@ -230,6 +232,7 @@ public class PlayerBody : KinematicBody
                 hasHookPoint = true;
             }
             //We grab the distance form the player body to the hookPoint
+            /*
             if (hookPoint.DistanceTo(Transform.origin) < 1.5f)
             {
                 //If no hook point is set we set the grappling and hookPointGet to false
@@ -237,6 +240,7 @@ public class PlayerBody : KinematicBody
                 hasHookPoint = false;
                 hookPointDirection = new Vector3();
             }
+            */
         }
         //We check if we are colliding with hte ceiling
         if (ceilingRaycast.IsColliding())
@@ -251,22 +255,22 @@ public class PlayerBody : KinematicBody
             hookPointDirection = new Vector3();
         }
         //===============================================================================================================
+        
         //If we were gliding but are now on the ground we disable the isGliding
         if (isGliding)
         {
             //We grab the current velocity 
             //lift  = velocity * delta;
             //Don't know if this wil work or not
-            lift = Mathf.Abs((velocity.x + velocity.z));
+            lift = velocity.Length();//  Mathf.Abs((velocity.x + velocity.z));
+            //Clamp the lift 
+            lift = Mathf.Clamp(lift, 0, 20);
+            GD.Print("velocity.y = " + velocity.y);
+            //velocity.y += lift;
         }
-        //Clamp the lift 
-        lift = Mathf.Clamp(lift, 0, 20);
-        //We add the gravity to the velocities y axis
-        velocity.y += delta * (gravity + lift);
-        //We clamp the gravity so the player doesn't start falling into the sky 
-        Mathf.Clamp(velocity.y, gravity, -1);
-
-        //we set the velocity to a temporary velocity to add some pysics work
+//We add the gravity to the velocities y axis
+        velocity.y += delta * gravity;
+        //we set the velocity to a temporary velocity hvel to add some pysics work
         Vector3 hvel = velocity;
         //We make sure that the tem horizontal velocities y axis for jumping is set to zero; 
         hvel.y = 0;
