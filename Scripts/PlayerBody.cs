@@ -35,7 +35,7 @@ public class PlayerBody : KinematicBody
     //The force of the jump
     float jumpSpeed = 5f;
     //Force of a jump if the grapple is in use
-     float grappleJumpSpeed = 7f;
+    float grappleJumpSpeed = 7f;
     //How hard the gravity pulls down on the player
     float gravity = -9.8f;
     //The speed at witch the object picks up speed
@@ -145,16 +145,16 @@ public class PlayerBody : KinematicBody
         {
             //If the player is on the floor
             if ((IsOnFloor() || reachedHookPoint) && !isGliding)
-            {   
-                if(reachedHookPoint)
+            {
+                if (reachedHookPoint)
                 {
-                //We set the velocity to the jump velocity puls a little bit extra to get over a ledge if the graple hook was used
-                velocity.y = grappleJumpSpeed;
+                    //We set the velocity to the jump velocity puls a little bit extra to get over a ledge if the graple hook was used
+                    velocity.y = grappleJumpSpeed;
                 }
                 else
                 {
-                //We set the velocity to the jump velocity
-                velocity.y = jumpSpeed;
+                    //We set the velocity to the jump velocity
+                    velocity.y = jumpSpeed;
                 }
                 //We set the hasJumped to true
                 hasJumped = true;
@@ -287,11 +287,12 @@ public class PlayerBody : KinematicBody
                 GD.Print("Reached grapple hook point");
                 reachedHookPoint = true;
             }
-grappleLine.Clear();
-grappleLine.Begin(Mesh.PrimitiveType.LineStrip);
-grappleLine.AddVertex(Transform.origin);
-grappleLine.AddVertex(hookPoint);
-grappleLine.End();
+
+            grappleLine.Clear();
+            grappleLine.Begin(Mesh.PrimitiveType.LineStrip);
+            grappleLine.AddVertex(Transform.origin);
+            grappleLine.AddVertex(hookPoint);
+            grappleLine.End();
 
         }
         //We set the maximum movement speed her, later more max move speeds will be added for crouching, sprinting and gliding
