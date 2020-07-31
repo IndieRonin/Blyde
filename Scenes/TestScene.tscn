@@ -1,8 +1,9 @@
-[gd_scene load_steps=13 format=2]
+[gd_scene load_steps=14 format=2]
 
 [ext_resource path="res://Scenes/Player.tscn" type="PackedScene" id=1]
 [ext_resource path="res://Scenes/WorldEnvironment.tscn" type="PackedScene" id=2]
 [ext_resource path="res://Scenes/Platform.tscn" type="PackedScene" id=3]
+[ext_resource path="res://Models/Grapple Cube.dae" type="PackedScene" id=4]
 
 [sub_resource type="CubeMesh" id=1]
 size = Vector3( 100, 1, 100 )
@@ -155,3 +156,6 @@ transform = Transform( -4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -2, 18,
 
 [node name="Platform2" parent="." instance=ExtResource( 3 )]
 transform = Transform( -1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 21, 17, 13 )
+
+[node name="Grapple Cube" parent="." instance=ExtResource( 4 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -15.9935, 2.73335, 1.40751 )

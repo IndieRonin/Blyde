@@ -13,6 +13,8 @@ public class PlayerBody : KinematicBody
     RayCast ceilingRaycast;
     //The raycast for thte grapple 
     RayCast grappleRay;
+    //The emediate geometryto draw the grapple line
+    ImmediateGeometry grappleLine;
     //=============================================================================================
     //= Crouching variables =======================================================================
     //Movement varaibles below in the movement variables code, only other crouch spisific variables here
@@ -32,6 +34,8 @@ public class PlayerBody : KinematicBody
     //= The speeds for all movement ===============================================================
     //The force of the jump
     float jumpSpeed = 5f;
+    //Force of a jump if the grapple is in use
+     float grappleJumpSpeed = 7f;
     //How hard the gravity pulls down on the player
     float gravity = -9.8f;
     //The speed at witch the object picks up speed
@@ -70,6 +74,8 @@ public class PlayerBody : KinematicBody
     bool isGliding = false;
     //If the grappling hook has been fired
     bool grappleActive = false;
+    //If the player has reached the hook point for the grappling hook
+    bool reachedHookPoint = false;
     //If the players head is touching the cieling, used for crouch stuff
     bool isCollidingWithCeiling = false;
     //=============================================================================================
@@ -89,6 +95,8 @@ public class PlayerBody : KinematicBody
         cameraGimbal = GetNode<Spatial>("CameraGimbal");
         //Grab the refference to the camera
         camera = GetNode<Camera>("CameraGimbal/Camera");
+        //Set the grappel line to the emediate geometry object on the player
+        grappleLine = GetNode<ImmediateGeometry>("GrappleLine");
     }
     // Called every frame. 'delta' is the elapsed time since the previous frame.
     public override void _PhysicsProcess(float delta)
@@ -100,11 +108,6 @@ public class PlayerBody : KinematicBody
         ProcessInput(delta);
         //Processes the input and moves the charecter
         PrecessMovement(delta);
-        /*
-                Grapple();
-                //If the player hits a ceiling he does not "stick" to it for a second then fall, it makes you fall emediatly
-                if (headBumped) fall.y = -2;
-                */
     }
 
     private void ProcessInput(float delta)
@@ -135,17 +138,30 @@ public class PlayerBody : KinematicBody
         {
             hasJumped = false;
             isGliding = false;
+            reachedHookPoint = false;
         }
         //If we press jump this method is called once
         if (Input.IsActionJustPressed("Jump"))
         {
             //If the player is on the floor
-            if (IsOnFloor() && !isGliding)
-            {
+            if ((IsOnFloor() || reachedHookPoint) && !isGliding)
+            {   
+                if(reachedHookPoint)
+                {
+                //We set the velocity to the jump velocity puls a little bit extra to get over a ledge if the graple hook was used
+                velocity.y = grappleJumpSpeed;
+                }
+                else
+                {
                 //We set the velocity to the jump velocity
                 velocity.y = jumpSpeed;
+                }
                 //We set the hasJumped to true
                 hasJumped = true;
+                //Disable the hook point from the graple
+                grappleActive = false;
+                hasHookPoint = false;
+                reachedHookPoint = false;
             }
             else
             {
@@ -169,7 +185,7 @@ public class PlayerBody : KinematicBody
         if (Input.IsActionPressed("Sprint")) isSprinting = true;
         else isSprinting = false;
         //If the player is crouching and the collision shape is a capsule then 
-        if (Input.IsActionPressed("Crouch") && bodyCollShape.Shape is CapsuleShape capShape)
+        if (Input.IsActionPressed("Crouch") && bodyCollShape.Shape is CapsuleShape capShape && !hasHookPoint && !isGliding)
         {
             capShape.Height -= MAX_CROUCH_SPEED * delta;
             isCrouching = true;
@@ -199,6 +215,7 @@ public class PlayerBody : KinematicBody
             {
                 grappleActive = false;
                 hasHookPoint = false;
+                reachedHookPoint = false;
                 hookPoint = new Vector3();
             }
         }
@@ -222,7 +239,6 @@ public class PlayerBody : KinematicBody
             {
                 //If we don't have a hook point yet then we check if the raycast is colliding with something valid
                 //If the raycast is colliding we set the hookPoint that point 
-                //hookPoint = grappleRay.GetCollisionPoint() + new Vector3(0, 1.25f, 0);
                 hookPoint = grappleRay.GetCollisionPoint();
                 //We tell the function we now have a hook point so we don't get a new one in the next interation of the loop
                 hasHookPoint = true;
@@ -263,7 +279,20 @@ public class PlayerBody : KinematicBody
         {
             //Set gravity to 0 to travel ot hooked point smoothly
             velocity.y = 0;
-            Transform = new Transform(Transform.basis,Transform.origin.LinearInterpolate(hookPoint, MAX_GRAPPLE_SPEED * delta));
+            Transform = new Transform(Transform.basis, Transform.origin.LinearInterpolate(hookPoint, MAX_GRAPPLE_SPEED * delta));
+            //Check the distance from the players position to the hook point of the grapple
+            //GD.Print("Distance to hook point = " + Transform.origin.DistanceTo(hookPoint));
+            if (Transform.origin.DistanceTo(hookPoint) < 1.5f)
+            {
+                GD.Print("Reached grapple hook point");
+                reachedHookPoint = true;
+            }
+grappleLine.Clear();
+grappleLine.Begin(Mesh.PrimitiveType.LineStrip);
+grappleLine.AddVertex(Transform.origin);
+grappleLine.AddVertex(hookPoint);
+grappleLine.End();
+
         }
         //We set the maximum movement speed her, later more max move speeds will be added for crouching, sprinting and gliding
         if (isSprinting) target *= MAX_SPRINT_SPEED;
