@@ -14,7 +14,7 @@ public class PlayerBody : KinematicBody
     //The raycast for thte grapple 
     RayCast grappleRay;
     //The emediate geometryto draw the grapple line
-    ImmediateGeometry grappleLine;
+    DrawGrappleLine grappleLine;
     //=============================================================================================
     //= Crouching variables =======================================================================
     //Movement varaibles below in the movement variables code, only other crouch spisific variables here
@@ -61,7 +61,7 @@ public class PlayerBody : KinematicBody
     //The speed at with the player crouches, goes into a crouching position
     float MAX_CROUCH_SPEED = 3;
     //The speed at with the player is pulle to the hook of the grapple
-    float MAX_GRAPPLE_SPEED = 3;
+    float MAX_GRAPPLE_SPEED = 5;
     //=============================================================================================
     //= Statuses of the movement of the player ====================================================
     //If the player is sprinting
@@ -96,7 +96,7 @@ public class PlayerBody : KinematicBody
         //Grab the refference to the camera
         camera = GetNode<Camera>("CameraGimbal/Camera");
         //Set the grappel line to the emediate geometry object on the player
-        grappleLine = GetNode<ImmediateGeometry>("GrappleLine");
+        grappleLine = GetNode<DrawGrappleLine>("GrappleLine");
     }
     // Called every frame. 'delta' is the elapsed time since the previous frame.
     public override void _PhysicsProcess(float delta)
@@ -284,15 +284,10 @@ public class PlayerBody : KinematicBody
             //GD.Print("Distance to hook point = " + Transform.origin.DistanceTo(hookPoint));
             if (Transform.origin.DistanceTo(hookPoint) < 1.5f)
             {
-                GD.Print("Reached grapple hook point");
                 reachedHookPoint = true;
             }
 
-            grappleLine.Clear();
-            grappleLine.Begin(Mesh.PrimitiveType.LineStrip);
-            grappleLine.AddVertex(Transform.origin);
-            grappleLine.AddVertex(hookPoint);
-            grappleLine.End();
+            //grappleLine.DrawLine(Transform.origin, hookPoint);
 
         }
         //We set the maximum movement speed her, later more max move speeds will be added for crouching, sprinting and gliding

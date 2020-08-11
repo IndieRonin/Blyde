@@ -26,6 +26,10 @@ window/size/height=720
 window/size/resizable=false
 window/size/always_on_top=true
 
+[editor_plugins]
+
+enabled=PoolStringArray(  )
+
 [input]
 
 MoveForward={

@@ -65,6 +65,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Scripts\CommandHandler.cs" />
     <Compile Include="Scripts\Console.cs" />
+    <Compile Include="Scripts\DrawGrappleLine.cs" />
     <Compile Include="Scripts\EventSystem\ConsoleInputEvent.cs" />
     <Compile Include="Scripts\InputHandler.cs" />
     <Compile Include="Scripts\Main.cs" />
