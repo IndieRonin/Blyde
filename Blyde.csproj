@@ -68,10 +68,12 @@
     <Compile Include="Scripts\DrawGrappleLine.cs" />
     <Compile Include="Scripts\EventSystem\ConsoleInputEvent.cs" />
     <Compile Include="Scripts\InputHandler.cs" />
+    <Compile Include="Scripts\DayNightCycle.cs" />
     <Compile Include="Scripts\Main.cs" />
     <Compile Include="Scripts\PlayerBody.cs" />
     <Compile Include="Scripts\EventSystem\Event.cs" />
     <Compile Include="Scripts\EventSystem\InputHandleEvent.cs" />
+    <Compile Include="Scripts\Tmp\RotateIslands.cs" />
     <Compile Include="Scripts\UIManager.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

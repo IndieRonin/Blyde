@@ -306,7 +306,8 @@ public class PlayerBody : KinematicBody
         velocity.x = hvel.x;
         velocity.z = hvel.z;
         //We then call the move and slide method with the new velocity values
-        velocity = MoveAndSlide(velocity, Vector3.Up, true, 4, Mathf.Deg2Rad(MAX_SLOPE_ANGLE));
+        //velocity = MoveAndSlide(velocity, Vector3.Up, true, 4, Mathf.Deg2Rad(MAX_SLOPE_ANGLE));
+        velocity = MoveAndSlideWithSnap(velocity, Vector3.Up, true, 4, Mathf.Deg2Rad(MAX_SLOPE_ANGLE));
     }
     public override void _Input(InputEvent @event)
     {

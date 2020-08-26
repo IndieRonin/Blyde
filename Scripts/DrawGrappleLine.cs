@@ -135,6 +135,7 @@ public class DrawGrappleLine : ImmediateGeometry
             }
             else
             {
+                
                 xVec = yVec.Cross(lastFirstVec).Cross(yVec).Normalized(); // keep each loop at the same rotation as the previous
             }
             var width = maxRadius;

@@ -2,12 +2,12 @@
 
 importer="scene"
 type="PackedScene"
-path="res://.import/Grapple Cube.dae-4499709ad3e8ba4648c5d545e0482e83.scn"
+path="res://.import/Grapple Cube.glb-1e8fd9392ac6acb3b581bb317f92fe64.scn"
 
 [deps]
 
-source_file="res://Models/Grapple Cube.dae"
-dest_files=[ "res://.import/Grapple Cube.dae-4499709ad3e8ba4648c5d545e0482e83.scn" ]
+source_file="res://3D Assets/Grapple Cube.glb"
+dest_files=[ "res://.import/Grapple Cube.glb-1e8fd9392ac6acb3b581bb317f92fe64.scn" ]
 
 [params]
 

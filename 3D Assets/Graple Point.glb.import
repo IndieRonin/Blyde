@@ -2,12 +2,12 @@
 
 importer="scene"
 type="PackedScene"
-path="res://.import/Platform.dae-06753dd60a27803d1076613ea3c5549b.scn"
+path="res://.import/Graple Point.glb-7305863bafcd6b3fd8298eba2dbb1c75.scn"
 
 [deps]
 
-source_file="res://Models/Platform.dae"
-dest_files=[ "res://.import/Platform.dae-06753dd60a27803d1076613ea3c5549b.scn" ]
+source_file="res://3D Assets/Graple Point.glb"
+dest_files=[ "res://.import/Graple Point.glb-7305863bafcd6b3fd8298eba2dbb1c75.scn" ]
 
 [params]
 
