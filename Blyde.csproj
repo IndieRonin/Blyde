@@ -73,7 +73,6 @@
     <Compile Include="Scripts\PlayerBody.cs" />
     <Compile Include="Scripts\EventSystem\Event.cs" />
     <Compile Include="Scripts\EventSystem\InputHandleEvent.cs" />
-    <Compile Include="Scripts\Tmp\RotateIslands.cs" />
     <Compile Include="Scripts\UIManager.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

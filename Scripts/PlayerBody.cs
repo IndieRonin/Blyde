@@ -268,6 +268,7 @@ public class PlayerBody : KinematicBody
         }
         //We add the gravity to the velocities y axis
         velocity.y += delta * (gravity + lift);
+        
         //we set the velocity to a temporary velocity hvel to add some pysics work
         Vector3 hvel = velocity;
         //We make sure that the tem horizontal velocities y axis for jumping is set to zero; 
@@ -306,8 +307,7 @@ public class PlayerBody : KinematicBody
         velocity.x = hvel.x;
         velocity.z = hvel.z;
         //We then call the move and slide method with the new velocity values
-        //velocity = MoveAndSlide(velocity, Vector3.Up, true, 4, Mathf.Deg2Rad(MAX_SLOPE_ANGLE));
-        velocity = MoveAndSlideWithSnap(velocity, Vector3.Up, true, 4, Mathf.Deg2Rad(MAX_SLOPE_ANGLE));
+        velocity = MoveAndSlide(velocity, Vector3.Up, true, 4, Mathf.Deg2Rad(MAX_SLOPE_ANGLE));
     }
     public override void _Input(InputEvent @event)
     {
