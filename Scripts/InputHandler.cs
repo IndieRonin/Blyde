@@ -4,6 +4,8 @@ using EventCallback;
 
 public class InputHandler : Node
 {
+int upKey, downKey, leftKey, rightKey, jumpKey, crouchKey, grappleKey, glideKey;
+
     InputHandleEvent ihei;
     bool upCheck, downCheck, leftCheck, rightCheck;
     ulong lastMousePosTimeEntry = 0;
