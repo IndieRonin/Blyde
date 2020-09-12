@@ -11,6 +11,8 @@ public class PlayerBody : KinematicBody
     bool hasHookPoint = false;
     //The raycast that picks up if the player has the ceiling above it
     RayCast ceilingRaycast;
+    //The grounds raycast
+    RayCast groundRay;
     //The raycast for thte grapple 
     RayCast grappleRay;
     //The emediate geometryto draw the grapple line
@@ -37,7 +39,9 @@ public class PlayerBody : KinematicBody
     //Force of a jump if the grapple is in use
     float grappleJumpSpeed = 7f;
     //How hard the gravity pulls down on the player
-    float gravity = -9.8f;
+    float gravity = 9.8f;
+    //The vector for the gravity calculations
+    Vector3 gravityVec = new Vector3();
     //The speed at witch the object picks up speed
     float acceleration = 5f;
     //acceleration for the grapple
@@ -45,7 +49,7 @@ public class PlayerBody : KinematicBody
     //The speed at witch the the object losses speed
     float deacceleration = 16f;
     //The maximum slope that can be moved up
-    float MAX_SLOPE_ANGLE = 45;
+    float maxSlopeAngle = 45;
     //How hight the player characters camera displayes when standing
     float defualtHeight = 1.5f;
     //How high the players character camera is when it is crouvhed
@@ -53,21 +57,23 @@ public class PlayerBody : KinematicBody
     //The sensitivity of the mouse, how fast it turns
     float mouseSensitivity = 0.1f;
     //The maximum walk speed
-    float MAX_WALK_SPEED = 7;
+    float maxWalkSpeed = 7;
     //How sensitive the movement of the mouse is
-    float MAX_SPRINT_SPEED = 15;
+    float maxSprintSpeed = 15;
     //The maximum crouch movement speed the player has
-    float MAX_CROUCHING_SPEED = 4;
+    float maxCrouchingSpeed = 4;
     //The speed at with the player crouches, goes into a crouching position
-    float MAX_CROUCH_SPEED = 3;
+    float maxCrouchSpeed = 3;
     //The speed at with the player is pulle to the hook of the grapple
-    float MAX_GRAPPLE_SPEED = 5;
+    float maxGrappleSpeed = 5;
     //=============================================================================================
     //= Statuses of the movement of the player ====================================================
     //If the player is sprinting
     bool isSprinting = false;
     //If the player is crouching
     bool isCrouching = false;
+    //The player can jump now
+    bool jump = false;
     //Check if the player has pressed the jump button once already
     bool hasJumped = false;
     //If we are gliding it is set to true
@@ -78,6 +84,8 @@ public class PlayerBody : KinematicBody
     bool reachedHookPoint = false;
     //If the players head is touching the cieling, used for crouch stuff
     bool isCollidingWithCeiling = false;
+    //Is the ground raycast in contact with the ground
+    bool groundContact = false;
     //=============================================================================================
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
@@ -89,6 +97,8 @@ public class PlayerBody : KinematicBody
 
         //The cameras movement gimbal, used for looking mechanics
         grappleRay = GetNode<RayCast>("CameraGimbal/Camera/GrappleRay");
+        //Set the ground ray to the raycast in scene
+        groundRay = GetNode<RayCast>("GroundRay");
         //The raycast on the player body that detects cieling collisions
         ceilingRaycast = GetNode<RayCast>("CeilingCollisionRay");
         //Grab the refference to the cameras gimbals
@@ -101,9 +111,6 @@ public class PlayerBody : KinematicBody
     // Called every frame. 'delta' is the elapsed time since the previous frame.
     public override void _PhysicsProcess(float delta)
     {
-        //Check if the head ray collider is active
-        if (ceilingRaycast.IsColliding()) isCollidingWithCeiling = true;
-
         //Grabs the input 
         ProcessInput(delta);
         //Processes the input and moves the charecter
@@ -112,6 +119,11 @@ public class PlayerBody : KinematicBody
 
     private void ProcessInput(float delta)
     {
+        //Check if the head ray collider is active
+        if (ceilingRaycast.IsColliding()) isCollidingWithCeiling = true;
+        //Check if the ground ray is colliding
+        if (groundRay.IsColliding()) groundContact = true;
+        else groundContact = false;
         //The initial move direction for the player
         direction = new Vector3();
         //The reference to the cameras global transformw
@@ -144,18 +156,10 @@ public class PlayerBody : KinematicBody
         if (Input.IsActionJustPressed("Jump"))
         {
             //If the player is on the floor
-            if ((IsOnFloor() || reachedHookPoint) && !isGliding)
+            if ((IsOnFloor() || reachedHookPoint || groundRay.IsColliding()) && !isGliding)
             {
-                if (reachedHookPoint)
-                {
-                    //We set the velocity to the jump velocity puls a little bit extra to get over a ledge if the graple hook was used
-                    velocity.y = grappleJumpSpeed;
-                }
-                else
-                {
-                    //We set the velocity to the jump velocity
-                    velocity.y = jumpSpeed;
-                }
+                //Set jump to true so the player jumps in the process fynction
+                jump = true;
                 //We set the hasJumped to true
                 hasJumped = true;
                 //Disable the hook point from the graple
@@ -187,12 +191,12 @@ public class PlayerBody : KinematicBody
         //If the player is crouching and the collision shape is a capsule then 
         if (Input.IsActionPressed("Crouch") && bodyCollShape.Shape is CapsuleShape capShape && !hasHookPoint && !isGliding)
         {
-            capShape.Height -= MAX_CROUCH_SPEED * delta;
+            capShape.Height -= maxCrouchSpeed * delta;
             isCrouching = true;
         }
         else if (!isCollidingWithCeiling)
         {
-            ((CapsuleShape)bodyCollShape.Shape).Height += MAX_CROUCH_SPEED * delta;
+            ((CapsuleShape)bodyCollShape.Shape).Height += maxCrouchSpeed * delta;
             isCrouching = false;
         }
         //Clamp the max and min height for crouching when it is being modified
@@ -267,8 +271,38 @@ public class PlayerBody : KinematicBody
             lift = Mathf.Clamp(lift, 0, 14);
         }
         //We add the gravity to the velocities y axis
-        velocity.y += delta * (gravity + lift);
-        
+        //velocity.y += delta * (gravity + lift);
+
+        if (!IsOnFloor())
+        {
+            gravityVec += Vector3.Down * gravity * delta;
+        }
+        else if(IsOnFloor() && groundContact)
+        {
+            gravityVec = -GetFloorNormal() * gravity;
+        }
+else 
+    {
+        gravityVec = -GetFloorNormal();
+    }
+
+        if (jump)
+        {
+            if (reachedHookPoint)
+            {
+                //We set the velocity to the jump velocity puls a little bit extra to get over a ledge if the graple hook was used
+                //velocity.y = grappleJumpSpeed;
+                gravityVec = Vector3.Up * grappleJumpSpeed;
+            }
+            else
+            {
+                //We set the velocity to the jump velocity
+                //velocity.y = jumpSpeed;
+                gravityVec = Vector3.Up * jumpSpeed;
+            }
+            //Set to false after we have jumped
+            jump = false;
+        }
         //we set the velocity to a temporary velocity hvel to add some pysics work
         Vector3 hvel = velocity;
         //We make sure that the tem horizontal velocities y axis for jumping is set to zero; 
@@ -280,7 +314,7 @@ public class PlayerBody : KinematicBody
         {
             //Set gravity to 0 to travel ot hooked point smoothly
             velocity.y = 0;
-            Transform = new Transform(Transform.basis, Transform.origin.LinearInterpolate(hookPoint, MAX_GRAPPLE_SPEED * delta));
+            Transform = new Transform(Transform.basis, Transform.origin.LinearInterpolate(hookPoint, maxGrappleSpeed * delta));
             //Check the distance from the players position to the hook point of the grapple
             //GD.Print("Distance to hook point = " + Transform.origin.DistanceTo(hookPoint));
             if (Transform.origin.DistanceTo(hookPoint) < 1.5f)
@@ -292,10 +326,10 @@ public class PlayerBody : KinematicBody
 
         }
         //We set the maximum movement speed her, later more max move speeds will be added for crouching, sprinting and gliding
-        if (isSprinting) target *= MAX_SPRINT_SPEED;
-        else if (isCrouching) target *= MAX_CROUCH_SPEED;
-        else if (hasHookPoint) target *= MAX_GRAPPLE_SPEED;
-        else target *= MAX_WALK_SPEED;
+        if (isSprinting) target *= maxSprintSpeed;
+        else if (isCrouching) target *= maxCrouchSpeed;
+        else if (hasHookPoint) target *= maxGrappleSpeed;
+        else target *= maxWalkSpeed;
         //Create the aceleration variable to be used
         float accel;
         //Check if the dot product for the direction vec3 is greater than zero, if it is we set the accel to acceleration else we set it to deaccelerate
@@ -304,10 +338,12 @@ public class PlayerBody : KinematicBody
         //We then linear interpolate the horizontal velocity with the target by the accel amount
         hvel = hvel.LinearInterpolate(target, accel * delta);
         //We set the velocity to the newly interpolated hvel vec3
-        velocity.x = hvel.x;
-        velocity.z = hvel.z;
+        velocity.x = hvel.x + gravityVec.x;
+        velocity.z = hvel.z + gravityVec.z;
+        velocity.y = gravityVec.y;
         //We then call the move and slide method with the new velocity values
-        velocity = MoveAndSlide(velocity, Vector3.Up, true, 4, Mathf.Deg2Rad(MAX_SLOPE_ANGLE));
+        //velocity = MoveAndSlide(velocity, Vector3.Up, true, 4, Mathf.Deg2Rad(maxSlopeAngle));
+        MoveAndSlide(velocity, Vector3.Up, true, 4, Mathf.Deg2Rad(maxSlopeAngle));
     }
     public override void _Input(InputEvent @event)
     {

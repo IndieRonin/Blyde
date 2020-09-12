@@ -9,6 +9,19 @@ public class InputHandler : Node
     ulong lastMousePosTimeEntry = 0;
     bool mouseUpdateCalled = false;
 
+    public override void _Ready()
+    {
+        //Set the input key to be used for adding the key events fom the keyboard
+        InputEventKey inputKeyboard = new InputEventKey();
+        //Set the input to be used for adding the key events fom the mouse
+        InputEventMouseButton inputMouse = new InputEventMouseButton();
+
+        InputMap.AddAction("LeftClick");
+        inputKeyboard.Scancode = int(KeyList.A);
+        //Used to add keyboard keys
+        InputMap.ActionAddEvent("LeftClick", inputKeyboard);
+    }
+
     public override void _UnhandledInput(Godot.InputEvent @event)
     {
         if (@event is InputEventMouseButton || @event is InputEventKey)
