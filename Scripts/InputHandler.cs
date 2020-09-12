@@ -26,9 +26,11 @@ int upKey, downKey, leftKey, rightKey, jumpKey, crouchKey, grappleKey, glideKey;
 
     public override void _UnhandledInput(Godot.InputEvent @event)
     {
-        if (@event is InputEventMouseButton || @event is InputEventKey)
+        if (@event is InputEventMouseButton || @event is InputEventKey eventKey)
         {
             ihei = new InputHandleEvent();
+if (eventKey.Pressed && eventKey.Scancode == (int)KeyList.Escape)) ihei.upPressed = true;
+            
             if (@event.IsActionPressed("LeftClick")) ihei.lmbPressed = true;
             if (@event.IsActionReleased("LeftClick")) ihei.lmbRelease = true;
             if (@event.IsActionPressed("RightClick")) ihei.rmbPressed = true;
