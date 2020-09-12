@@ -90,6 +90,7 @@ public class PlayerBody : KinematicBody
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
+        InputHandleEvent.RegisterListener(grabInput);
         //Make the mouse invisible and not able to leave the window to capture it's movement
         Input.SetMouseMode(Input.MouseMode.Captured);
         //The shape of thte players collision shape
@@ -107,6 +108,12 @@ public class PlayerBody : KinematicBody
         camera = GetNode<Camera>("CameraGimbal/Camera");
         //Set the grappel line to the emediate geometry object on the player
         grappleLine = GetNode<DrawGrappleLine>("GrappleLine");
+    }
+
+    private void grabInput(InputHandleEvent ihei)
+    {
+        GD.Print(ihei.upPressed);
+        GD.Print(ihei.lmbPressed);
     }
     // Called every frame. 'delta' is the elapsed time since the previous frame.
     public override void _PhysicsProcess(float delta)
