@@ -4,13 +4,7 @@ using EventCallback;
 
 public class InputHandler : Node
 {
-    //Might use them later to store custom key bindings for the game
-    int upKey, downKey, leftKey, rightKey, jumpKey, crouchKey, grappleKey, glideKey;
-
     InputHandleEvent ihei;
-    bool upCheck, downCheck, leftCheck, rightCheck;
-    ulong lastMousePosTimeEntry = 0;
-    bool mouseUpdateCalled = false;
 
     public override void _UnhandledInput(Godot.InputEvent @event)
     {
@@ -28,34 +22,44 @@ public class InputHandler : Node
                 if (eventMouseButton.ButtonIndex == (int)ButtonList.Right) ihei.rmbPressed = false;
             }
         }
-        if (@event is InputEventKey eventKey)
-        {
-            if (eventKey.Pressed)
-            {
-                if (eventKey.Scancode == (int)KeyList.W) ihei.upPressed = true;
-                if (eventKey.Scancode == (int)KeyList.S) ihei.downPressed = true;
-                if (eventKey.Scancode == (int)KeyList.A) ihei.leftPressed = true;
-                if (eventKey.Scancode == (int)KeyList.D) ihei.rightPressed = true;
-                if (eventKey.Scancode == (int)KeyList.Space) ihei.jumpPressed = true;
-                if (eventKey.Scancode == (int)KeyList.C) ihei.crouchPressed = true;
-                if (eventKey.Scancode == (int)KeyList.Shift) ihei.sprintPressed = true;
-                if (eventKey.Scancode == (int)KeyList.E) ihei.abilityPressed = true;
-                if (eventKey.Scancode == (int)KeyList.Q)ihei.consolePressed = true;
-            }
-            else
-            {
-                if (eventKey.Scancode == (int)KeyList.W) ihei.upPressed = false;
-                if (eventKey.Scancode == (int)KeyList.S) ihei.downPressed = false;
-                if (eventKey.Scancode == (int)KeyList.A) ihei.leftPressed = false;
-                if (eventKey.Scancode == (int)KeyList.D) ihei.rightPressed = false;
-                if (eventKey.Scancode == (int)KeyList.Space) ihei.jumpPressed = false;
-                if (eventKey.Scancode == (int)KeyList.C) ihei.crouchPressed = false;
-                if (eventKey.Scancode == (int)KeyList.Shift) ihei.sprintPressed = false;
-                if (eventKey.Scancode == (int)KeyList.E) ihei.abilityPressed = false;
-                if (eventKey.Scancode == (int)KeyList.Q)ihei.consolePressed = false;
-            }
 
-            ihei.FireEvent();
-        }
+        if (Input.IsKeyPressed((int)KeyList.W)) ihei.upPressed = true; else ihei.upPressed = false;
+        if (Input.IsKeyPressed((int)KeyList.S)) ihei.downPressed = true; else ihei.downPressed = false;
+        if (Input.IsKeyPressed((int)KeyList.A)) ihei.leftPressed = true; else ihei.leftPressed = false;
+        if (Input.IsKeyPressed((int)KeyList.D)) ihei.rightPressed = true; else ihei.rightPressed = false;
+        if (Input.IsKeyPressed((int)KeyList.Space)) ihei.jumpPressed = true; else ihei.jumpPressed = false;
+        if (Input.IsKeyPressed((int)KeyList.C)) ihei.crouchPressed = true; else ihei.crouchPressed = false;
+        if (Input.IsKeyPressed((int)KeyList.Shift)) ihei.sprintPressed = true; else ihei.sprintPressed = false;
+        if (Input.IsKeyPressed((int)KeyList.E)) ihei.abilityPressed = true; else ihei.abilityPressed = false;
+        if (Input.IsKeyPressed((int)KeyList.Q)) ihei.consolePressed = true; else ihei.consolePressed = false;
+
+        // if (@event is InputEventKey eventKey)
+        // {
+        //     if (eventKey.Pressed)
+        //     {
+        //         if (eventKey.Scancode == (int)KeyList.W) ihei.upPressed = true;
+        //         if (eventKey.Scancode == (int)KeyList.S) ihei.downPressed = true;
+        //         if (eventKey.Scancode == (int)KeyList.A) ihei.leftPressed = true;
+        //         if (eventKey.Scancode == (int)KeyList.D) ihei.rightPressed = true;
+        //         if (eventKey.Scancode == (int)KeyList.Space) ihei.jumpPressed = true;
+        //         if (eventKey.Scancode == (int)KeyList.C) ihei.crouchPressed = true;
+        //         if (eventKey.Scancode == (int)KeyList.Shift) ihei.sprintPressed = true;
+        //         if (eventKey.Scancode == (int)KeyList.E) ihei.abilityPressed = true;
+        //         if (eventKey.Scancode == (int)KeyList.Q) ihei.consolePressed = true;
+        //     }
+        //     else
+        //     {
+        //         if (eventKey.Scancode == (int)KeyList.W) ihei.upPressed = false;
+        //         if (eventKey.Scancode == (int)KeyList.S) ihei.downPressed = false;
+        //         if (eventKey.Scancode == (int)KeyList.A) ihei.leftPressed = false;
+        //         if (eventKey.Scancode == (int)KeyList.D) ihei.rightPressed = false;
+        //         if (eventKey.Scancode == (int)KeyList.Space) ihei.jumpPressed = false;
+        //         if (eventKey.Scancode == (int)KeyList.C) ihei.crouchPressed = false;
+        //         if (eventKey.Scancode == (int)KeyList.Shift) ihei.sprintPressed = false;
+        //         if (eventKey.Scancode == (int)KeyList.E) ihei.abilityPressed = false;
+        //         if (eventKey.Scancode == (int)KeyList.Q) ihei.consolePressed = false;
+        //     }
+        // }
+        ihei.FireEvent();
     }
 }

@@ -76,6 +76,7 @@
     <Compile Include="Scripts\EventSystem\ConsoleInputEvent.cs" />
     <Compile Include="Scripts\EventSystem\DeathEvent.cs" />
     <Compile Include="Scripts\EventSystem\HitEvent.cs" />
+    <Compile Include="Scripts\PlayerMovement.cs" />
     <Compile Include="Scripts\UIManager.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

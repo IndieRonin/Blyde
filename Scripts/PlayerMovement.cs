@@ -2,7 +2,7 @@ using Godot;
 using System;
 using EventCallback;
 
-public class PlayerBody : KinematicBody
+public class PlayerMovement : KinematicBody
 {
     //= Grappling hook variables ==================================================================
     //The point where the grappling hook has hooked
@@ -88,8 +88,11 @@ public class PlayerBody : KinematicBody
     bool groundContact = false;
     //=============================================================================================
 
+    //= Variables used for movement checks from the input manager =================================
     bool moveForward = false, moveBackward = false, strafeLeft = false, strafeRight = false, sprint = false, jump = false, crouch = false, graple = false;
-    // Called when the node enters the scene tree for the first time.
+    //=============================================================================================
+
+    //= Called when the node enters the scene tree for the first time. ============================
     public override void _Ready()
     {
         InputHandleEvent.RegisterListener(grabInput);
@@ -97,7 +100,6 @@ public class PlayerBody : KinematicBody
         Input.SetMouseMode(Input.MouseMode.Captured);
         //The shape of thte players collision shape
         bodyCollShape = GetNode<CollisionShape>("BodyCollisionShape");
-
         //The cameras movement gimbal, used for looking mechanics
         grappleRay = GetNode<RayCast>("CameraGimbal/Camera/GrappleRay");
         //Set the ground ray to the raycast in scene
@@ -111,7 +113,9 @@ public class PlayerBody : KinematicBody
         //Set the grappel line to the emediate geometry object on the player
         grappleLine = GetNode<DrawGrappleLine>("GrappleLine");
     }
+    // ============================================================================================
 
+    //= Whenever the input manager is called these this function is called
     private void grabInput(InputHandleEvent ihei)
     {
         moveForward = ihei.upPressed;
@@ -137,28 +141,31 @@ public class PlayerBody : KinematicBody
         //Check if the head ray collider is active
         if (ceilingRaycast.IsColliding()) isCollidingWithCeiling = true;
         //Check if the ground ray is colliding
-        if (groundRay.IsColliding()) groundContact = true;
-        else groundContact = false;
-        //The initial move direction for the player
-        direction = new Vector3();
+        if (groundRay.IsColliding())
+        {
+            groundContact = true;
+        }
+        else
+        {
+            groundContact = false;
+        }
+
         //The reference to the cameras global transformw
         Transform camTransform = camera.GlobalTransform;
+
         //Get the movement vector here 
-        Vector2 inputMovementVector = new Vector2();
+        Vector2 inputMovement = new Vector2();
         //Check what movement buttons are pressed
-        if (Input.IsActionPressed("MoveForward"))
-            inputMovementVector.y += 1;
-        else if (Input.IsActionPressed("MoveBackward"))
-            inputMovementVector.y -= 1;
-        if (Input.IsActionPressed("StrafeLeft"))
-            inputMovementVector.x -= 1;
-        else if (Input.IsActionPressed("StrafeRight"))
-            inputMovementVector.x += 1;
+        if (moveForward)
+            inputMovement.y += 1;
+        else if (moveBackward)
+            inputMovement.y -= 1;
+        if (strafeLeft)
+            inputMovement.x -= 1;
+        else if (strafeRight)
+            inputMovement.x += 1;
         //Normalize the input vector to not get faster movement when moving diagonally
-        inputMovementVector = inputMovementVector.Normalized();
-        //set the direction using the cameras transform basis multiplied with the input values
-        direction += -camTransform.basis.z * inputMovementVector.y;
-        direction += camTransform.basis.x * inputMovementVector.x;
+        inputMovement = inputMovement.Normalized();
         //If the player is on the floor then set the hasjumped and isGliding checks to false
         //Can't think of a better way to do this now than brute forcing it just before the Jump button check
         if (IsOnFloor())
@@ -242,7 +249,12 @@ public class PlayerBody : KinematicBody
 
     private void PrecessMovement(float delta)
     {
-
+        //The initial move direction for the player
+        direction = new Vector3();
+        //set the direction using the cameras transform basis multiplied with the input values
+        direction += -camTransform.basis.z * inputMovement.y;
+        direction += camTransform.basis.x * inputMovement.x;
+        
         //Set the directions y to zero as the jump physics will be added later
         direction.y = 0;
         //Normalize the direction
