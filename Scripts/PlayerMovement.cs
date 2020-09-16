@@ -133,7 +133,7 @@ public class PlayerMovement : KinematicBody
         //Grabs the input 
         ProcessInput(delta);
         //Processes the input and moves the charecter
-        PrecessMovement(delta);
+        ProcessMovement(delta);
     }
 
     private void ProcessInput(float delta)
@@ -247,7 +247,7 @@ public class PlayerMovement : KinematicBody
         }
     }
 
-    private void PrecessMovement(float delta)
+    private void ProcessMovement(float delta)
     {
         //The initial move direction for the player
         direction = new Vector3();
