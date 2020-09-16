@@ -89,7 +89,7 @@ public class PlayerMovement : KinematicBody
     //=============================================================================================
 
     //= Variables used for movement checks from the input manager =================================
-    bool moveForward = false, moveBackward = false, strafeLeft = false, strafeRight = false, sprint = false, jump = false, crouch = false, graple = false;
+    bool moveForward = false, moveBackward = false, strafeLeft = false, strafeRight = false, sprint = false, jump = false, crouch = false, graple = false, escape = false;
     //=============================================================================================
 
     //= Called when the node enters the scene tree for the first time. ============================
@@ -126,6 +126,7 @@ public class PlayerMovement : KinematicBody
         jump = ihei.jumpPressed;
         crouch = ihei.crouchPressed;
         graple = ihei.abilityPressed;
+        escape = iehi.escapePressed;
     }
     // Called every frame. 'delta' is the elapsed time since the previous frame.
     public override void _PhysicsProcess(float delta)
@@ -138,22 +139,7 @@ public class PlayerMovement : KinematicBody
 
     private void ProcessInput(float delta)
     {
-        //Check if the head ray collider is active
-        if (ceilingRaycast.IsColliding()) isCollidingWithCeiling = true;
-        //Check if the ground ray is colliding
-        if (groundRay.IsColliding())
-        {
-            groundContact = true;
-        }
-        else
-        {
-            groundContact = false;
-        }
-
-        //The reference to the cameras global transformw
-        Transform camTransform = camera.GlobalTransform;
-
-        //Get the movement vector here 
+            //Get the movement vector here 
         Vector2 inputMovement = new Vector2();
         //Check what movement buttons are pressed
         if (moveForward)
@@ -164,24 +150,16 @@ public class PlayerMovement : KinematicBody
             inputMovement.x -= 1;
         else if (strafeRight)
             inputMovement.x += 1;
-        //Normalize the input vector to not get faster movement when moving diagonally
-        inputMovement = inputMovement.Normalized();
-        //If the player is on the floor then set the hasjumped and isGliding checks to false
-        //Can't think of a better way to do this now than brute forcing it just before the Jump button check
-        if (IsOnFloor())
-        {
-            hasJumped = false;
-            isGliding = false;
-            reachedHookPoint = false;
-        }
-        //If we press jump this method is called once
-        if (Input.IsActionJustPressed("Jump"))
+            
+      //Normalize the input vector to not get faster movement when moving diagonally
+        inputMovement = inputMovement.Normalized();    
+        
+       //If we press jump this method is called once
+        if (jump)
         {
             //If the player is on the floor
             if ((IsOnFloor() || reachedHookPoint || groundRay.IsColliding()) && !isGliding)
             {
-                //Set jump to true so the player jumps in the process fynction
-                jump = true;
                 //We set the hasJumped to true
                 hasJumped = true;
                 //Disable the hook point from the graple
@@ -198,21 +176,50 @@ public class PlayerMovement : KinematicBody
                     isGliding = !isGliding;
                 }
             }
-        }
+        }  
+        
         //  Capturing/Freeing the cursor
-        if (Input.IsActionJustPressed("ui_cancel"))
+        if (escape)
         {
             if (Input.GetMouseMode() == Input.MouseMode.Visible)
                 Input.SetMouseMode(Input.MouseMode.Captured);
             else
                 Input.SetMouseMode(Input.MouseMode.Visible);
         }
+        
+         
+            
+        //Check if the head ray collider is active
+        if (ceilingRaycast.IsColliding()) isCollidingWithCeiling = true;
+        //Check if the ground ray is colliding
+        if (groundRay.IsColliding())
+        {
+            groundContact = true;
+        }
+        else
+        {
+            groundContact = false;
+        }
+
+
+        
+        //If the player is on the floor then set the hasjumped and isGliding checks to false
+        //Can't think of a better way to do this now than brute forcing it just before the Jump button check
+        if (IsOnFloor())
+        {
+            hasJumped = false;
+            isGliding = false;
+            reachedHookPoint = false;
+        }
+    
+        
         //If the sprint button is pressed we set sprinting to true
-        if (Input.IsActionPressed("Sprint")) isSprinting = true;
+        if (sprint) isSprinting = true;
         else isSprinting = false;
         //If the player is crouching and the collision shape is a capsule then 
-        if (Input.IsActionPressed("Crouch") && bodyCollShape.Shape is CapsuleShape capShape && !hasHookPoint && !isGliding)
+        if (crouch && !hasHookPoint && !isGliding)
         {
+        bodyCollShape.Shape capShape = CapsuleShape;
             capShape.Height -= maxCrouchSpeed * delta;
             isCrouching = true;
         }
@@ -224,7 +231,7 @@ public class PlayerMovement : KinematicBody
         //Clamp the max and min height for crouching when it is being modified
         ((CapsuleShape)bodyCollShape.Shape).Height = Mathf.Clamp(((CapsuleShape)bodyCollShape.Shape).Height, crouchHeight, defualtHeight);
         //If the player presses the ability key for hte grapple
-        if (Input.IsActionJustPressed("Ability"))
+        if (ability)
         {
             //If the grapple ray is colliding with an object
             if (grappleRay.IsColliding())
@@ -251,6 +258,8 @@ public class PlayerMovement : KinematicBody
     {
         //The initial move direction for the player
         direction = new Vector3();
+        //The reference to the cameras global transformw
+        Transform camTransform = camera.GlobalTransform;
         //set the direction using the cameras transform basis multiplied with the input values
         direction += -camTransform.basis.z * inputMovement.y;
         direction += camTransform.basis.x * inputMovement.x;
@@ -353,8 +362,8 @@ public class PlayerMovement : KinematicBody
 
         }
         //We set the maximum movement speed her, later more max move speeds will be added for crouching, sprinting and gliding
-        if (isSprinting) target *= maxSprintSpeed;
-        else if (isCrouching) target *= maxCrouchSpeed;
+        if (sprint) target *= maxSprintSpeed;
+        else if (crouch) target *= maxCrouchSpeed;
         else if (hasHookPoint) target *= maxGrappleSpeed;
         else target *= maxWalkSpeed;
         //Create the aceleration variable to be used
