@@ -362,8 +362,8 @@ public class PlayerMovement : KinematicBody
 
         }
         //We set the maximum movement speed her, later more max move speeds will be added for crouching, sprinting and gliding
-        if (sprint) target *= maxSprintSpeed;
-        else if (crouch) target *= maxCrouchSpeed;
+        if (isSprinting) target *= maxSprintSpeed;
+        else if (isCrouching) target *= maxCrouchSpeed;
         else if (hasHookPoint) target *= maxGrappleSpeed;
         else target *= maxWalkSpeed;
         //Create the aceleration variable to be used
