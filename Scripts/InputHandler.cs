@@ -32,6 +32,7 @@ public class InputHandler : Node
         if (Input.IsKeyPressed((int)KeyList.Shift)) ihei.sprintPressed = true; else ihei.sprintPressed = false;
         if (Input.IsKeyPressed((int)KeyList.E)) ihei.abilityPressed = true; else ihei.abilityPressed = false;
         if (Input.IsKeyPressed((int)KeyList.Q)) ihei.consolePressed = true; else ihei.consolePressed = false;
+        if (Input.IsKeyPressed((int)KeyList.Escape)) ihei.escapePressed = true; else ihei.escapePressed = false;
 
         // if (@event is InputEventKey eventKey)
         // {
