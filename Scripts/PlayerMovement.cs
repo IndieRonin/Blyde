@@ -10,7 +10,7 @@ public class PlayerMovement : KinematicBody
     //If a hook point is returned
     bool hasHookPoint = false;
     //The raycast that picks up if the player has the ceiling above it
-    RayCast ceilingRaycast;
+    RayCast ceilingRay;
     //The grounds raycast
     RayCast groundRay;
     //The raycast for thte grapple 
@@ -18,15 +18,21 @@ public class PlayerMovement : KinematicBody
     //The emediate geometryto draw the grapple line
     DrawGrappleLine grappleLine;
     //=============================================================================================
+
     //= Crouching variables =======================================================================
     //Movement varaibles below in the movement variables code, only other crouch spisific variables here
 
     //The collision shape for the capsule, modified for the crouching behaviour 
     CollisionShape bodyCollShape;
     //=============================================================================================
+
     //= New movement variables ====================================================================
-    //The direction of travel
-    Vector3 direction = new Vector3();
+    //The keyboards directional input only for the horizotal movement
+    Vector3 inputDirection = new Vector3();
+    //The horizontal direction of travel
+    Vector3 horizontalVelocity = new Vector3();
+    //The vertical direction of travel
+    Vector3 verticalVelocity = new Vector3();
     //The velocity at whitch the player is traveling
     Vector3 velocity = new Vector3();
     //The spatiol object repereseting the gimble of the camera
@@ -46,6 +52,8 @@ public class PlayerMovement : KinematicBody
     float acceleration = 5f;
     //acceleration for the grapple
     float grappleAcceleration = 16;
+    //Decelleration when input controls released while in mid air
+    float airAcceleration = 1;
     //The speed at witch the the object losses speed
     float deacceleration = 16f;
     //The maximum slope that can be moved up
@@ -89,7 +97,7 @@ public class PlayerMovement : KinematicBody
     //=============================================================================================
 
     //= Variables used for movement checks from the input manager =================================
-    bool moveForward = false, moveBackward = false, strafeLeft = false, strafeRight = false, sprint = false, jump = false, crouch = false, graple = false, escape = false;
+    bool moveForward = false, moveBackward = false, strafeLeft = false, strafeRight = false, sprint = false, jump = false, crouch = false, grapple = false, escape = false;
     //=============================================================================================
 
     //= Called when the node enters the scene tree for the first time. ============================
@@ -103,9 +111,9 @@ public class PlayerMovement : KinematicBody
         //The cameras movement gimbal, used for looking mechanics
         grappleRay = GetNode<RayCast>("CameraGimbal/Camera/GrappleRay");
         //Set the ground ray to the raycast in scene
-        groundRay = GetNode<RayCast>("GroundRay");
+        groundRay = GetNode<RayCast>("GroundCollisionRay");
         //The raycast on the player body that detects cieling collisions
-        ceilingRaycast = GetNode<RayCast>("CeilingCollisionRay");
+        ceilingRay = GetNode<RayCast>("CeilingCollisionRay");
         //Grab the refference to the cameras gimbals
         cameraGimbal = GetNode<Spatial>("CameraGimbal");
         //Grab the refference to the camera
@@ -125,8 +133,21 @@ public class PlayerMovement : KinematicBody
         sprint = ihei.sprintPressed;
         jump = ihei.jumpPressed;
         crouch = ihei.crouchPressed;
-        graple = ihei.abilityPressed;
-        escape = iehi.escapePressed;
+        grapple = ihei.abilityPressed;
+        escape = ihei.escapePressed;
+    }
+    public override void _Input(InputEvent @event)
+    {
+        if (@event is InputEventMouseMotion eventMouseMotion && Input.GetMouseMode() == Input.MouseMode.Captured)
+        {
+
+            cameraGimbal.RotateX(Mathf.Deg2Rad(-eventMouseMotion.Relative.y * mouseSensitivity));
+            RotateY(Mathf.Deg2Rad(-eventMouseMotion.Relative.x * mouseSensitivity));
+
+            Vector3 camRotation = cameraGimbal.RotationDegrees;
+            camRotation.x = Mathf.Clamp(camRotation.x, -80f, 80f);
+            cameraGimbal.RotationDegrees = camRotation;
+        }
     }
     // Called every frame. 'delta' is the elapsed time since the previous frame.
     public override void _PhysicsProcess(float delta)
@@ -139,45 +160,93 @@ public class PlayerMovement : KinematicBody
 
     private void ProcessInput(float delta)
     {
-            //Get the movement vector here 
-        Vector2 inputMovement = new Vector2();
+        //The horizontal movement input from the keyboard, we reset it here so it does not build up a value indefenitely
+        inputDirection = Vector3.Zero;
+        //Check if the ground ray is colliding then sets the grounded value acordingly
+        if (groundRay.IsColliding()) groundContact = true; else groundContact = false;
+
+        //Explination for inputDirection below, the inpit direction below 
         //Check what movement buttons are pressed
         if (moveForward)
-            inputMovement.y += 1;
+            inputDirection -= Transform.basis.z;
         else if (moveBackward)
-            inputMovement.y -= 1;
+            inputDirection += Transform.basis.z;
         if (strafeLeft)
-            inputMovement.x -= 1;
+            inputDirection -= Transform.basis.x;
         else if (strafeRight)
-            inputMovement.x += 1;
-            
-      //Normalize the input vector to not get faster movement when moving diagonally
-        inputMovement = inputMovement.Normalized();    
-        
-       //If we press jump this method is called once
-        if (jump)
-        {
-            //If the player is on the floor
-            if ((IsOnFloor() || reachedHookPoint || groundRay.IsColliding()) && !isGliding)
-            {
-                //We set the hasJumped to true
-                hasJumped = true;
-                //Disable the hook point from the graple
-                grappleActive = false;
-                hasHookPoint = false;
-                reachedHookPoint = false;
-            }
-            else
-            {
-                //If the player is not on thet floow and is gliding and 
-                if (hasJumped)
+            inputDirection += Transform.basis.x;
+
+        //Normalize the input vector to not get faster movement when moving diagonally
+        inputDirection = inputDirection.Normalized();
+
+        //If the sprint button is pressed we set sprinting to true
+        if (sprint) isSprinting = true; else isSprinting = false;
+        /*
+                //If we press jump this method is called once
+                if (jump)
                 {
-                    //Togle gliding on or of
-                    isGliding = !isGliding;
+                    //If the player is on the floor
+                    if ((IsOnFloor() || reachedHookPoint || groundRay.IsColliding()) && !isGliding)
+                    {
+                        //We set the hasJumped to true
+                        hasJumped = true;
+                        //Disable the hook point from the graple
+                        grappleActive = false;
+                        hasHookPoint = false;
+                        reachedHookPoint = false;
+                    }
+                    else
+                    {
+                        //If the player is not on thet floow and is gliding and 
+                        //if (hasJumped)
+                        if (!IsOnFloor())
+                        {
+                            //Togle gliding on or of
+                            isGliding = !isGliding;
+                        }
+                    }
                 }
-            }
-        }  
-        
+                
+                //If the player is crouching and the collision shape is a capsule then 
+                if (crouch)
+                {
+                    //Return out of the above if statement as you cannot crouch while gliding or hooked on a grapple hook point
+                    if(hasHookPoint || isGliding) return;
+                    //Set the new collision capsule height when crouching
+                    ((CapsuleShape)bodyCollShape.Shape).Height -= maxCrouchSpeed * delta;
+                    //Set is crouching to true 
+                    isCrouching = true;
+                }
+                else if (!isCollidingWithCeiling)
+                {
+                    ((CapsuleShape)bodyCollShape.Shape).Height += maxCrouchSpeed * delta;
+                    isCrouching = false;
+                }
+                //Clamp the max and min height for crouching when it is being modified
+                ((CapsuleShape)bodyCollShape.Shape).Height = Mathf.Clamp(((CapsuleShape)bodyCollShape.Shape).Height, crouchHeight, defualtHeight);
+                //If the player presses the ability key for hte grapple
+                if (grapple)
+                {
+                    //If the grapple ray is colliding with an object
+                    if (grappleRay.IsColliding())
+                    {
+                        //If the grapple is off
+                        if (!grappleActive)
+                        {
+                            //Set the grapple active
+                            grappleActive = true;
+                        }
+                    }
+                    //If the grapple is active and the the hook point is there then we cut the grapple 
+                    if (grappleActive && hasHookPoint)
+                    {
+                        grappleActive = false;
+                        hasHookPoint = false;
+                        reachedHookPoint = false;
+                        hookPoint = new Vector3();
+                    }
+                }
+*/
         //  Capturing/Freeing the cursor
         if (escape)
         {
@@ -186,88 +255,105 @@ public class PlayerMovement : KinematicBody
             else
                 Input.SetMouseMode(Input.MouseMode.Visible);
         }
-        
-         
-            
-        //Check if the head ray collider is active
-        if (ceilingRaycast.IsColliding()) isCollidingWithCeiling = true;
-        //Check if the ground ray is colliding
-        if (groundRay.IsColliding())
-        {
-            groundContact = true;
-        }
-        else
-        {
-            groundContact = false;
-        }
+        /*
 
 
-        
-        //If the player is on the floor then set the hasjumped and isGliding checks to false
-        //Can't think of a better way to do this now than brute forcing it just before the Jump button check
-        if (IsOnFloor())
-        {
-            hasJumped = false;
-            isGliding = false;
-            reachedHookPoint = false;
-        }
-    
-        
-        //If the sprint button is pressed we set sprinting to true
-        if (sprint) isSprinting = true;
-        else isSprinting = false;
-        //If the player is crouching and the collision shape is a capsule then 
-        if (crouch && !hasHookPoint && !isGliding)
-        {
-        bodyCollShape.Shape capShape = CapsuleShape;
-            capShape.Height -= maxCrouchSpeed * delta;
-            isCrouching = true;
-        }
-        else if (!isCollidingWithCeiling)
-        {
-            ((CapsuleShape)bodyCollShape.Shape).Height += maxCrouchSpeed * delta;
-            isCrouching = false;
-        }
-        //Clamp the max and min height for crouching when it is being modified
-        ((CapsuleShape)bodyCollShape.Shape).Height = Mathf.Clamp(((CapsuleShape)bodyCollShape.Shape).Height, crouchHeight, defualtHeight);
-        //If the player presses the ability key for hte grapple
-        if (ability)
-        {
-            //If the grapple ray is colliding with an object
-            if (grappleRay.IsColliding())
-            {
-                //If the grapple is off
-                if (!grappleActive)
-                {
-                    //Set the grapple active
-                    grappleActive = true;
-                }
-            }
-            //If the grapple is active and the the hook point is there then we cut the grapple 
-            if (grappleActive && hasHookPoint)
-            {
-                grappleActive = false;
-                hasHookPoint = false;
-                reachedHookPoint = false;
-                hookPoint = new Vector3();
-            }
-        }
+                        //Check if the head ray collider is active
+                        if (ceilingRay.IsColliding()) isCollidingWithCeiling = true;
+                        //Check if the ground ray is colliding
+                        if (groundRay.IsColliding()) groundContact = true; else groundContact = false;
+
+
+
+                        //If the player is on the floor then set the hasjumped and isGliding checks to false
+                        //Can't think of a better way to do this now than brute forcing it just before the Jump button check
+                        if (IsOnFloor())
+                        {
+                            hasJumped = false;
+                            isGliding = false;
+                            reachedHookPoint = false;
+                        }
+                */
     }
+
 
     private void ProcessMovement(float delta)
     {
+        float accel;
+
+        //Check if we are on the floor for the gravity calculations
+        if (!IsOnFloor())
+        {
+            //If we are not on the floor we just add the gravity like normal
+            verticalVelocity += Vector3.Down * gravity * delta;
+        }
+        else if (IsOnFloor() && groundContact)
+        {
+            //If we are on a slope we add gravity in the oposite direction of the slopes normal vector to prevent a godot bug from allowing us to slowely slide down the slope
+            verticalVelocity = -GetFloorNormal() * gravity;
+            //Set the gliding to false
+            isGliding = false;
+        }
+        else
+        {
+            // if we are not on the floor or on a slope we 
+            verticalVelocity = -GetFloorNormal();
+        }
+
+        //If the jump button was pressed
+        if (jump)
+        {
+            //If we are on the floor or in contact with a slope 
+            if (IsOnFloor() || groundContact)
+            {
+                //We add the jymp speed to the vertical velocity
+                verticalVelocity = Vector3.Up * jumpSpeed;
+            }
+            //If we are at a hook point for the grapple
+            else if (reachedHookPoint)
+            {
+                //We add a bit larger jump speed to clear the ledge that we are grappled to
+                verticalVelocity = Vector3.Up * grappleJumpSpeed;
+            }
+            //If not on the floor or slope or grapple hook point
+            else if (!IsOnFloor() && !groundContact)
+            {
+                GD.Print("Gliding activated");
+                //We are in the air and we can activate gliding
+                isGliding = true;
+            }
+        }
+
+        //We set the maximum movement speed her, later more max move speeds will be added for crouching, sprinting and gliding
+        if (isSprinting) inputDirection *= maxSprintSpeed;
+        else if (isCrouching) inputDirection *= maxCrouchSpeed;
+        else if (hasHookPoint) inputDirection *= maxGrappleSpeed;
+        else inputDirection *= maxWalkSpeed;
+
+        //Check if the dot product for the direction vec3 is greater than zero, if it is we set the accel to acceleration else we set it to deaccelerate
+        if (horizontalVelocity.Dot(velocity) > 0) accel = acceleration;
+        else accel = deacceleration;
+
+        horizontalVelocity = horizontalVelocity.LinearInterpolate(inputDirection, accel * delta);
+        velocity.z = horizontalVelocity.z + verticalVelocity.z;
+        velocity.x = horizontalVelocity.x + verticalVelocity.x;
+        velocity.y = verticalVelocity.y;
+
+        MoveAndSlide(velocity, Vector3.Up);
+
+        /*
         //The initial move direction for the player
-        direction = new Vector3();
+        moveDirection = new Vector3();
         //The reference to the cameras global transformw
         Transform camTransform = camera.GlobalTransform;
         //set the direction using the cameras transform basis multiplied with the input values
-        direction += -camTransform.basis.z * inputMovement.y;
-        direction += camTransform.basis.x * inputMovement.x;
-        
+        moveDirection += -camTransform.basis.z * inputDirection.y;
+        moveDirection += camTransform.basis.x * inputDirection.x;
+
         //Set the directions y to zero as the jump physics will be added later
-        direction.y = 0;
+        moveDirection.y = 0;
         //Normalize the direction
-        direction = direction.Normalized();
+        moveDirection = moveDirection.Normalized();
         //The lift calculated that will be applied to the gravity calculations
         float lift = 0;
         //===============================================================================================================
@@ -285,7 +371,7 @@ public class PlayerMovement : KinematicBody
             }
         }
         //We check if we are colliding with hte ceiling
-        if (ceilingRaycast.IsColliding())
+        if (ceilingRay.IsColliding())
         {
             //If we hit the ceiling with our head we set the graplpling to false to disconect the grapple line
             grappleActive = false;
@@ -344,7 +430,7 @@ public class PlayerMovement : KinematicBody
         //We make sure that the tem horizontal velocities y axis for jumping is set to zero; 
         hvel.y = 0;
         //we create another temporary vector3 to us for the movement speed calculations
-        Vector3 target = direction;
+        Vector3 target = moveDirection;
         //If the grapple has hooked a valid surface
         if (hasHookPoint)
         {
@@ -369,7 +455,7 @@ public class PlayerMovement : KinematicBody
         //Create the aceleration variable to be used
         float accel;
         //Check if the dot product for the direction vec3 is greater than zero, if it is we set the accel to acceleration else we set it to deaccelerate
-        if (direction.Dot(hvel) > 0) accel = acceleration;
+        if (moveDirection.Dot(hvel) > 0) accel = acceleration;
         else accel = deacceleration;
         //We then linear interpolate the horizontal velocity with the target by the accel amount
         hvel = hvel.LinearInterpolate(target, accel * delta);
@@ -380,19 +466,6 @@ public class PlayerMovement : KinematicBody
         //We then call the move and slide method with the new velocity values
         //velocity = MoveAndSlide(velocity, Vector3.Up, true, 4, Mathf.Deg2Rad(maxSlopeAngle));
         MoveAndSlide(velocity, Vector3.Up, true, 4, Mathf.Deg2Rad(maxSlopeAngle));
-    }
-    public override void _Input(InputEvent @event)
-    {
-        if (@event is InputEventMouseMotion eventMouseMotion && Input.GetMouseMode() == Input.MouseMode.Captured)
-        {
-            //RotateY(Mathf.Deg2Rad(-@event.relative.x * mouseSensitivity)) 
-            cameraGimbal.RotateX(Mathf.Deg2Rad(-eventMouseMotion.Relative.y * mouseSensitivity));
-            RotateY(Mathf.Deg2Rad(-eventMouseMotion.Relative.x * mouseSensitivity));
-
-            //cameraGimbal.Rotation = new Vector3(Mathf.Clamp(cameraGimbal.Rotation.x, Mathf.Deg2Rad(-90), Mathf.Deg2Rad(90)), cameraGimbal.Rotation.y, cameraGimbal.Rotation.z);
-            Vector3 camRotation = cameraGimbal.RotationDegrees;
-            camRotation.x = Mathf.Clamp(camRotation.x, -80f, 80f);
-            cameraGimbal.RotationDegrees = camRotation;
-        }
+        */
     }
 }
