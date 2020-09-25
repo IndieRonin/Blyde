@@ -81,7 +81,7 @@ public class PlayerMovement : KinematicBody
     //If the player is crouching
     bool isCrouching = false;
     //The player can jump now
-    bool canJump = false;
+    bool canJump = true;
     //Check if the player has pressed the jump button once already
     bool hasJumped = false;
     //If we are gliding it is set to true
@@ -94,6 +94,8 @@ public class PlayerMovement : KinematicBody
     bool isCollidingWithCeiling = false;
     //Is the ground raycast in contact with the ground
     bool groundContact = false;
+    //If the escape key has been pressed we take note of it so the key signal does not get repeated and the action only happens once
+    bool escapePressed = false;
     //=============================================================================================
 
     //= Variables used for movement checks from the input manager =================================
@@ -247,9 +249,11 @@ public class PlayerMovement : KinematicBody
                     }
                 }
 */
+        if (!escape) escapePressed = false;
         //  Capturing/Freeing the cursor
-        if (escape)
+        if (escape && !escapePressed)
         {
+            escapePressed = true;
             if (Input.GetMouseMode() == Input.MouseMode.Visible)
                 Input.SetMouseMode(Input.MouseMode.Captured);
             else
@@ -284,8 +288,17 @@ public class PlayerMovement : KinematicBody
         //Check if we are on the floor for the gravity calculations
         if (!IsOnFloor())
         {
-            //If we are not on the floor we just add the gravity like normal
-            verticalVelocity += Vector3.Down * gravity * delta;
+            //If we are not on the floor and the charecter is gliding
+            if (isGliding)
+            {
+                //If we are not on the floor we just add the gravity like normal we halve the gravity
+                verticalVelocity += Vector3.Down * (gravity * 0.5f) * delta;
+            }
+            else
+            {
+                //If we are not on the floor we just add the gravity like normal
+                verticalVelocity += Vector3.Down * gravity * delta;
+            }
         }
         else if (IsOnFloor() && groundContact)
         {
@@ -300,29 +313,43 @@ public class PlayerMovement : KinematicBody
             verticalVelocity = -GetFloorNormal();
         }
 
+        //Used to eliminate the key presses from repeating an action that only needs to be run on one press of the button
+        //currently the keypress callback runs repeated key presses
+        if (!jump) canJump = true;
         //If the jump button was pressed
+        //This jump funtion does a normal low jump when the jump key is pressed or held in but once the
+        //jump key is left the can jump goes to true that allows us to press it again, if the jump button is pressed again the 
+        //player is not on the ground or on a grapple hook the gliding is set to true that reduces the gravity to .5 of its original strength
         if (jump)
         {
-            //If we are on the floor or in contact with a slope 
-            if (IsOnFloor() || groundContact)
+            //If we can jump and we are not gliding yet 
+            if (canJump && !isGliding)
             {
-                //We add the jymp speed to the vertical velocity
-                verticalVelocity = Vector3.Up * jumpSpeed;
+                //We set the can jump to false
+                canJump = false;
+                //If we are on the floor or in contact with a slope 
+                if (IsOnFloor() || groundContact)
+                {
+                    //We add the jymp speed to the vertical velocity
+                    verticalVelocity = Vector3.Up * jumpSpeed;
+                }
+                //If we are at a hook point for the grapple
+                else if (reachedHookPoint)
+                {
+                    //We add a bit larger jump speed to clear the ledge that we are grappled to
+                    verticalVelocity = Vector3.Up * grappleJumpSpeed;
+                }
+                //If not on the floor or slope we set the gliding to true
+                if (!IsOnFloor() && !groundContact)
+                {
+                    //We are in the air and we can activate gliding
+                    isGliding = true;
+                }
             }
-            //If we are at a hook point for the grapple
-            else if (reachedHookPoint)
-            {
-                //We add a bit larger jump speed to clear the ledge that we are grappled to
-                verticalVelocity = Vector3.Up * grappleJumpSpeed;
-            }
-            //If not on the floor or slope or grapple hook point
-            else if (!IsOnFloor() && !groundContact)
-            {
-                GD.Print("Gliding activated");
-                //We are in the air and we can activate gliding
-                isGliding = true;
-            }
+
         }
+
+        //GD.Print("isGliding = " + isGliding);
 
         //We set the maximum movement speed her, later more max move speeds will be added for crouching, sprinting and gliding
         if (isSprinting) inputDirection *= maxSprintSpeed;

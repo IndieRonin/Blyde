@@ -67,7 +67,7 @@ points = PoolVector3Array( -2.5, 0.25, 10, 2.5, 0.25, -10, 2.5, 0.25, 10, -2.5, 
 [node name="TestScene" type="Spatial"]
 
 [node name="PlayerBody" parent="." instance=ExtResource( 1 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 7.21905, 5.14193 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 12.5, 7, 17 )
 
 [node name="WorldEnvironment" parent="." instance=ExtResource( 2 )]
 
