@@ -183,72 +183,47 @@ public class PlayerMovement : KinematicBody
 
         //If the sprint button is pressed we set sprinting to true
         if (sprint) isSprinting = true; else isSprinting = false;
-        /*
-                //If we press jump this method is called once
-                if (jump)
-                {
-                    //If the player is on the floor
-                    if ((IsOnFloor() || reachedHookPoint || groundRay.IsColliding()) && !isGliding)
-                    {
-                        //We set the hasJumped to true
-                        hasJumped = true;
-                        //Disable the hook point from the graple
-                        grappleActive = false;
-                        hasHookPoint = false;
-                        reachedHookPoint = false;
-                    }
-                    else
-                    {
-                        //If the player is not on thet floow and is gliding and 
-                        //if (hasJumped)
-                        if (!IsOnFloor())
-                        {
-                            //Togle gliding on or of
-                            isGliding = !isGliding;
-                        }
-                    }
-                }
-                
-                //If the player is crouching and the collision shape is a capsule then 
-                if (crouch)
-                {
-                    //Return out of the above if statement as you cannot crouch while gliding or hooked on a grapple hook point
-                    if(hasHookPoint || isGliding) return;
-                    //Set the new collision capsule height when crouching
-                    ((CapsuleShape)bodyCollShape.Shape).Height -= maxCrouchSpeed * delta;
-                    //Set is crouching to true 
-                    isCrouching = true;
-                }
-                else if (!isCollidingWithCeiling)
-                {
-                    ((CapsuleShape)bodyCollShape.Shape).Height += maxCrouchSpeed * delta;
-                    isCrouching = false;
-                }
+
+        //If the player is crouching and the collision shape is a capsule then 
+        if (crouch)
+        {
+            //Return out of the above if statement as you cannot crouch while gliding or hooked on a grapple hook point
+            if (hasHookPoint || isGliding) return;
+            //Set the new collision capsule height when crouching
+            ((CapsuleShape)bodyCollShape.Shape).Height -= maxCrouchSpeed * delta;
+            //Set is crouching to true 
+            isCrouching = true;
+        }
+        else if (!isCollidingWithCeiling)
+        {
+            ((CapsuleShape)bodyCollShape.Shape).Height += maxCrouchSpeed * delta;
+            isCrouching = false;
+        }
                 //Clamp the max and min height for crouching when it is being modified
                 ((CapsuleShape)bodyCollShape.Shape).Height = Mathf.Clamp(((CapsuleShape)bodyCollShape.Shape).Height, crouchHeight, defualtHeight);
-                //If the player presses the ability key for hte grapple
-                if (grapple)
+        //If the player presses the ability key for hte grapple
+        if (grapple)
+        {
+            //If the grapple ray is colliding with an object
+            if (grappleRay.IsColliding())
+            {
+                //If the grapple is off
+                if (!grappleActive)
                 {
-                    //If the grapple ray is colliding with an object
-                    if (grappleRay.IsColliding())
-                    {
-                        //If the grapple is off
-                        if (!grappleActive)
-                        {
-                            //Set the grapple active
-                            grappleActive = true;
-                        }
-                    }
-                    //If the grapple is active and the the hook point is there then we cut the grapple 
-                    if (grappleActive && hasHookPoint)
-                    {
-                        grappleActive = false;
-                        hasHookPoint = false;
-                        reachedHookPoint = false;
-                        hookPoint = new Vector3();
-                    }
+                    //Set the grapple active
+                    grappleActive = true;
                 }
-*/
+            }
+            //If the grapple is active and the the hook point is there then we cut the grapple 
+            if (grappleActive && hasHookPoint)
+            {
+                grappleActive = false;
+                hasHookPoint = false;
+                reachedHookPoint = false;
+                hookPoint = new Vector3();
+            }
+        }
+
         if (!escape) escapePressed = false;
         //  Capturing/Freeing the cursor
         if (escape && !escapePressed)
@@ -348,9 +323,6 @@ public class PlayerMovement : KinematicBody
             }
 
         }
-
-        //GD.Print("isGliding = " + isGliding);
-
         //We set the maximum movement speed her, later more max move speeds will be added for crouching, sprinting and gliding
         if (isSprinting) inputDirection *= maxSprintSpeed;
         else if (isCrouching) inputDirection *= maxCrouchSpeed;
@@ -369,20 +341,7 @@ public class PlayerMovement : KinematicBody
         MoveAndSlide(velocity, Vector3.Up);
 
         /*
-        //The initial move direction for the player
-        moveDirection = new Vector3();
-        //The reference to the cameras global transformw
-        Transform camTransform = camera.GlobalTransform;
-        //set the direction using the cameras transform basis multiplied with the input values
-        moveDirection += -camTransform.basis.z * inputDirection.y;
-        moveDirection += camTransform.basis.x * inputDirection.x;
-
-        //Set the directions y to zero as the jump physics will be added later
-        moveDirection.y = 0;
-        //Normalize the direction
-        moveDirection = moveDirection.Normalized();
-        //The lift calculated that will be applied to the gravity calculations
-        float lift = 0;
+       
         //===============================================================================================================
         //Grapling script to work on later
         if (grappleActive)
