@@ -199,8 +199,9 @@ public class PlayerMovement : KinematicBody
             ((CapsuleShape)bodyCollShape.Shape).Height += maxCrouchSpeed * delta;
             isCrouching = false;
         }
-                //Clamp the max and min height for crouching when it is being modified
-                ((CapsuleShape)bodyCollShape.Shape).Height = Mathf.Clamp(((CapsuleShape)bodyCollShape.Shape).Height, crouchHeight, defualtHeight);
+        //Clamp the max and min height for crouching when it is being modified
+        ((CapsuleShape)bodyCollShape.Shape).Height = Mathf.Clamp(((CapsuleShape)bodyCollShape.Shape).Height, crouchHeight, defualtHeight);
+        
         //If the player presses the ability key for hte grapple
         if (grapple)
         {
@@ -234,25 +235,6 @@ public class PlayerMovement : KinematicBody
             else
                 Input.SetMouseMode(Input.MouseMode.Visible);
         }
-        /*
-
-
-                        //Check if the head ray collider is active
-                        if (ceilingRay.IsColliding()) isCollidingWithCeiling = true;
-                        //Check if the ground ray is colliding
-                        if (groundRay.IsColliding()) groundContact = true; else groundContact = false;
-
-
-
-                        //If the player is on the floor then set the hasjumped and isGliding checks to false
-                        //Can't think of a better way to do this now than brute forcing it just before the Jump button check
-                        if (IsOnFloor())
-                        {
-                            hasJumped = false;
-                            isGliding = false;
-                            reachedHookPoint = false;
-                        }
-                */
     }
 
 

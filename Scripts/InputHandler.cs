@@ -28,7 +28,7 @@ public class InputHandler : Node
         if (Input.IsKeyPressed((int)KeyList.A)) ihei.leftPressed = true; else ihei.leftPressed = false;
         if (Input.IsKeyPressed((int)KeyList.D)) ihei.rightPressed = true; else ihei.rightPressed = false;
         if (Input.IsKeyPressed((int)KeyList.Space)) ihei.jumpPressed = true; else ihei.jumpPressed = false;
-        if (Input.IsKeyPressed((int)KeyList.C)) ihei.crouchPressed = true; else ihei.crouchPressed = false;
+        if (Input.IsKeyPressed((int)KeyList.Control)) ihei.crouchPressed = true; else ihei.crouchPressed = false;
         if (Input.IsKeyPressed((int)KeyList.Shift)) ihei.sprintPressed = true; else ihei.sprintPressed = false;
         if (Input.IsKeyPressed((int)KeyList.E)) ihei.abilityPressed = true; else ihei.abilityPressed = false;
         if (Input.IsKeyPressed((int)KeyList.Q)) ihei.consolePressed = true; else ihei.consolePressed = false;
