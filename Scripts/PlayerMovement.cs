@@ -96,10 +96,12 @@ public class PlayerMovement : KinematicBody
     bool groundContact = false;
     //If the escape key has been pressed we take note of it so the key signal does not get repeated and the action only happens once
     bool escapePressed = false;
+    //Check for the graple button
+    bool abilityPressed = false;
     //=============================================================================================
 
     //= Variables used for movement checks from the input manager =================================
-    bool moveForward = false, moveBackward = false, strafeLeft = false, strafeRight = false, sprint = false, jump = false, crouch = false, grapple = false, escape = false;
+    bool moveForward = false, moveBackward = false, strafeLeft = false, strafeRight = false, sprint = false, jump = false, crouch = false, ability = false, escape = false;
     //=============================================================================================
 
     //= Called when the node enters the scene tree for the first time. ============================
@@ -135,7 +137,7 @@ public class PlayerMovement : KinematicBody
         sprint = ihei.sprintPressed;
         jump = ihei.jumpPressed;
         crouch = ihei.crouchPressed;
-        grapple = ihei.abilityPressed;
+        ability = ihei.abilityPressed;
         escape = ihei.escapePressed;
     }
     public override void _Input(InputEvent @event)
@@ -201,9 +203,11 @@ public class PlayerMovement : KinematicBody
         }
         //Clamp the max and min height for crouching when it is being modified
         ((CapsuleShape)bodyCollShape.Shape).Height = Mathf.Clamp(((CapsuleShape)bodyCollShape.Shape).Height, crouchHeight, defualtHeight);
-        
+
+        //Check if the abillity button is bein pressed 
+        if (!ability) abilityPressed = false;
         //If the player presses the ability key for hte grapple
-        if (grapple)
+        if (ability && !abilityPressed)
         {
             //If the grapple ray is colliding with an object
             if (grappleRay.IsColliding())
@@ -305,25 +309,7 @@ public class PlayerMovement : KinematicBody
             }
 
         }
-        //We set the maximum movement speed her, later more max move speeds will be added for crouching, sprinting and gliding
-        if (isSprinting) inputDirection *= maxSprintSpeed;
-        else if (isCrouching) inputDirection *= maxCrouchSpeed;
-        else if (hasHookPoint) inputDirection *= maxGrappleSpeed;
-        else inputDirection *= maxWalkSpeed;
 
-        //Check if the dot product for the direction vec3 is greater than zero, if it is we set the accel to acceleration else we set it to deaccelerate
-        if (horizontalVelocity.Dot(velocity) > 0) accel = acceleration;
-        else accel = deacceleration;
-
-        horizontalVelocity = horizontalVelocity.LinearInterpolate(inputDirection, accel * delta);
-        velocity.z = horizontalVelocity.z + verticalVelocity.z;
-        velocity.x = horizontalVelocity.x + verticalVelocity.x;
-        velocity.y = verticalVelocity.y;
-
-        MoveAndSlide(velocity, Vector3.Up);
-
-        /*
-       
         //===============================================================================================================
         //Grapling script to work on later
         if (grappleActive)
@@ -350,90 +336,40 @@ public class PlayerMovement : KinematicBody
             GlobalTranslate(new Vector3(0, -1, 0));
             hookPoint = new Vector3();
         }
-        //===============================================================================================================
 
-        //If we were gliding but are now on the ground we disable the isGliding
-        if (isGliding)
-        {
-            //We get the magnitude of the vector as a float (speed) to add toe the gravity calculations
-            lift = new Vector2(velocity.x, velocity.z).Length();
-            //Clamp the lift float to not give to much lift
-            lift = Mathf.Clamp(lift, 0, 14);
-        }
-        //We add the gravity to the velocities y axis
-        //velocity.y += delta * (gravity + lift);
 
-        if (!IsOnFloor())
-        {
-            gravityVec += Vector3.Down * gravity * delta;
-        }
-        else if (IsOnFloor() && groundContact)
-        {
-            gravityVec = -GetFloorNormal() * gravity;
-        }
-        else
-        {
-            gravityVec = -GetFloorNormal();
-        }
+        //======================================================
 
-        if (jump)
-        {
-            if (reachedHookPoint)
-            {
-                //We set the velocity to the jump velocity puls a little bit extra to get over a ledge if the graple hook was used
-                //velocity.y = grappleJumpSpeed;
-                gravityVec = Vector3.Up * grappleJumpSpeed;
-            }
-            else
-            {
-                //We set the velocity to the jump velocity
-                //velocity.y = jumpSpeed;
-                gravityVec = Vector3.Up * jumpSpeed;
-            }
-            //Set to false after we have jumped
-            jump = false;
-        }
-        //we set the velocity to a temporary velocity hvel to add some pysics work
-        Vector3 hvel = velocity;
-        //We make sure that the tem horizontal velocities y axis for jumping is set to zero; 
-        hvel.y = 0;
-        //we create another temporary vector3 to us for the movement speed calculations
-        Vector3 target = moveDirection;
-        //If the grapple has hooked a valid surface
+        //= Last physics calculations before mave and slide is called
+        //We set the maximum movement speed her, later more max move speeds will be added for crouching, sprinting and gliding
+        if (isSprinting) inputDirection *= maxSprintSpeed;
+        else if (isCrouching) inputDirection *= maxCrouchSpeed;
+        else inputDirection *= maxWalkSpeed;
+
+        //Check if the dot product for the direction vec3 is greater than zero, if it is we set the accel to acceleration else we set it to deaccelerate
+        if (horizontalVelocity.Dot(velocity) > 0) accel = acceleration;
+        else accel = deacceleration;
+
+        horizontalVelocity = horizontalVelocity.LinearInterpolate(inputDirection, accel * delta);
+        velocity.z = horizontalVelocity.z + verticalVelocity.z;
+        velocity.x = horizontalVelocity.x + verticalVelocity.x;
+        velocity.y = verticalVelocity.y;
+
         if (hasHookPoint)
         {
-            //Set gravity to 0 to travel ot hooked point smoothly
-            velocity.y = 0;
-            Transform = new Transform(Transform.basis, Transform.origin.LinearInterpolate(hookPoint, maxGrappleSpeed * delta));
+            //Get the direction of travel
+            hookPoint = hookPoint.Normalized();
+
+            velocity = velocity.LinearInterpolate(hookPoint, (maxGrappleSpeed * 20) * delta);
+            //Transform = new Transform(Transform.basis, Transform.origin.LinearInterpolate(hookPoint, maxGrappleSpeed * delta));
             //Check the distance from the players position to the hook point of the grapple
             //GD.Print("Distance to hook point = " + Transform.origin.DistanceTo(hookPoint));
             if (Transform.origin.DistanceTo(hookPoint) < 1.5f)
             {
                 reachedHookPoint = true;
             }
-
-            //grappleLine.DrawLine(Transform.origin, hookPoint);
-
         }
-        //We set the maximum movement speed her, later more max move speeds will be added for crouching, sprinting and gliding
-        if (isSprinting) target *= maxSprintSpeed;
-        else if (isCrouching) target *= maxCrouchSpeed;
-        else if (hasHookPoint) target *= maxGrappleSpeed;
-        else target *= maxWalkSpeed;
-        //Create the aceleration variable to be used
-        float accel;
-        //Check if the dot product for the direction vec3 is greater than zero, if it is we set the accel to acceleration else we set it to deaccelerate
-        if (moveDirection.Dot(hvel) > 0) accel = acceleration;
-        else accel = deacceleration;
-        //We then linear interpolate the horizontal velocity with the target by the accel amount
-        hvel = hvel.LinearInterpolate(target, accel * delta);
-        //We set the velocity to the newly interpolated hvel vec3
-        velocity.x = hvel.x + gravityVec.x;
-        velocity.z = hvel.z + gravityVec.z;
-        velocity.y = gravityVec.y;
-        //We then call the move and slide method with the new velocity values
-        //velocity = MoveAndSlide(velocity, Vector3.Up, true, 4, Mathf.Deg2Rad(maxSlopeAngle));
-        MoveAndSlide(velocity, Vector3.Up, true, 4, Mathf.Deg2Rad(maxSlopeAngle));
-        */
+
+        MoveAndSlide(velocity, Vector3.Up);
     }
 }
