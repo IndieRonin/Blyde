@@ -204,11 +204,12 @@ public class PlayerMovement : KinematicBody
         //Clamp the max and min height for crouching when it is being modified
         ((CapsuleShape)bodyCollShape.Shape).Height = Mathf.Clamp(((CapsuleShape)bodyCollShape.Shape).Height, crouchHeight, defualtHeight);
 
-        //Check if the abillity button is bein pressed 
+        //Check if the abillity button is being pressed 
         if (!ability) abilityPressed = false;
         //If the player presses the ability key for hte grapple
         if (ability && !abilityPressed)
         {
+            abilityPressed = true;
             //If the grapple ray is colliding with an object
             if (grappleRay.IsColliding())
             {
@@ -228,6 +229,41 @@ public class PlayerMovement : KinematicBody
                 hookPoint = new Vector3();
             }
         }
+        //Grapling script to work on later
+        if (grappleActive)
+        {
+            //Check if we already have a hook point for the grapple
+            if (!hasHookPoint)
+            {
+                //If we don't have a hook point yet then we check if the raycast is colliding with something valid
+                //If the raycast is colliding we set the hookPoint that point 
+                hookPoint = grappleRay.GetCollisionPoint();
+                //We tell the function we now have a hook point so we don't get a new one in the next interation of the loop
+                hasHookPoint = true;
+            }
+        }
+        //We check if we are colliding with hte ceiling
+        if (ceilingRay.IsColliding())
+        {
+            //If we hit the ceiling with our head we set the graplpling to false to disconect the grapple line
+            grappleActive = false;
+            //We reset the hookPoint 
+            hookPoint = new Vector3();
+            //We set the hookPointGet
+            hasHookPoint = false;
+            GlobalTranslate(new Vector3(0, -1, 0));
+            reachedHookPoint = false;
+        }
+        if(reachedHookPoint && groundRay.IsColliding())
+        {
+            //If we hit the ground we disconect the grapple line
+            grappleActive = false;
+            //We reset the hookPoint 
+            hookPoint = new Vector3();
+            //We set the hookPointGet
+            hasHookPoint = false;
+            reachedHookPoint = false;
+        }
 
         if (!escape) escapePressed = false;
         //  Capturing/Freeing the cursor
@@ -240,8 +276,6 @@ public class PlayerMovement : KinematicBody
                 Input.SetMouseMode(Input.MouseMode.Visible);
         }
     }
-
-
     private void ProcessMovement(float delta)
     {
         float accel;
@@ -287,7 +321,13 @@ public class PlayerMovement : KinematicBody
             if (canJump && !isGliding)
             {
                 //We set the can jump to false
-                canJump = false;
+                canJump = false;    
+                //If not on the floor or slope we set the gliding to true
+                if (!IsOnFloor() && !groundContact && !reachedHookPoint)
+                {
+                    //We are in the air and we can activate gliding
+                    isGliding = true;
+                }
                 //If we are on the floor or in contact with a slope 
                 if (IsOnFloor() || groundContact)
                 {
@@ -299,44 +339,32 @@ public class PlayerMovement : KinematicBody
                 {
                     //We add a bit larger jump speed to clear the ledge that we are grappled to
                     verticalVelocity = Vector3.Up * grappleJumpSpeed;
+                    //If we hit the ceiling with our head we set the graplpling to false to disconect the grapple line
+                    grappleActive = false;
+                    //We reset the hookPoint 
+                    hookPoint = new Vector3();
+                    //We set the hookPointGet
+                    hasHookPoint = false;
+                    //Reset the hook point reached
+                    reachedHookPoint = false;
                 }
-                //If not on the floor or slope we set the gliding to true
-                if (!IsOnFloor() && !groundContact)
-                {
-                    //We are in the air and we can activate gliding
-                    isGliding = true;
-                }
+
             }
 
         }
 
-        //===============================================================================================================
-        //Grapling script to work on later
-        if (grappleActive)
+        //= Grapple calculations for the grapple movement 
+        if (hasHookPoint)
         {
-            //Check if we already have a hook point for the grapple
-            if (!hasHookPoint)
+            verticalVelocity.y = 0;
+            Transform = new Transform(Transform.basis, Transform.origin.LinearInterpolate(hookPoint, maxGrappleSpeed * delta));
+            //Check the distance from the players position to the hook point of the grapple
+            //GD.Print("Distance to hook point = " + Transform.origin.DistanceTo(hookPoint));
+            if (Transform.origin.DistanceTo(hookPoint) < 1.5f)
             {
-                //If we don't have a hook point yet then we check if the raycast is colliding with something valid
-                //If the raycast is colliding we set the hookPoint that point 
-                hookPoint = grappleRay.GetCollisionPoint();
-                //We tell the function we now have a hook point so we don't get a new one in the next interation of the loop
-                hasHookPoint = true;
+                reachedHookPoint = true;
             }
         }
-        //We check if we are colliding with hte ceiling
-        if (ceilingRay.IsColliding())
-        {
-            //If we hit the ceiling with our head we set the graplpling to false to disconect the grapple line
-            grappleActive = false;
-            //We reset the hookPoint 
-            hookPoint = new Vector3();
-            //We set the hookPointGet
-            hasHookPoint = false;
-            GlobalTranslate(new Vector3(0, -1, 0));
-            hookPoint = new Vector3();
-        }
-
 
         //======================================================
 
@@ -355,20 +383,7 @@ public class PlayerMovement : KinematicBody
         velocity.x = horizontalVelocity.x + verticalVelocity.x;
         velocity.y = verticalVelocity.y;
 
-        if (hasHookPoint)
-        {
-            //Get the direction of travel
-            hookPoint = hookPoint.Normalized();
 
-            velocity = velocity.LinearInterpolate(hookPoint, (maxGrappleSpeed * 20) * delta);
-            //Transform = new Transform(Transform.basis, Transform.origin.LinearInterpolate(hookPoint, maxGrappleSpeed * delta));
-            //Check the distance from the players position to the hook point of the grapple
-            //GD.Print("Distance to hook point = " + Transform.origin.DistanceTo(hookPoint));
-            if (Transform.origin.DistanceTo(hookPoint) < 1.5f)
-            {
-                reachedHookPoint = true;
-            }
-        }
 
         MoveAndSlide(velocity, Vector3.Up);
     }
